@@ -1,0 +1,204 @@
+---
+title: "Graph generator"
+author: "Man-fang Liang"
+date: "4/11/2022"
+output:
+  html_document: default
+---
+
+# Create synthetic dataset
+
+## Generate numerical variables
+```{r}
+# numerical variables ------------------------------------------------
+
+# generate variables -------
+
+# generate random mean and sd
+# set.seed(1)
+mean_vector <- runif(4, min=0, max=100)
+# set.seed(2)
+sd_vector <- runif(4, min=0, max=100)
+
+rowsize <- 100
+
+# N1 & N2 (independent)
+# set.seed(3)
+N1 <- rnorm(rowsize, mean=mean_vector[1], sd=sd_vector[1])
+# set.seed(4)
+N2 <- rnorm(rowsize, mean=mean_vector[2], sd=sd_vector[2])
+
+# N3 & N4 (correlated)
+# set.seed(5)
+N3 <- rnorm(rowsize, mean=mean_vector[3], sd=sd_vector[3])
+# set.seed(6)
+N4 <- rnorm(rowsize, mean=mean_vector[4], sd=sd_vector[4])
+
+# make N3 & N4 correlated
+N3 <- sort(N3)
+N4 <- sort(N4)
+
+# reorder N3 & N4 at the same time
+# set.seed(7)
+random_order <- sample(1:rowsize, rowsize, replace=F)
+N3 <- N3[random_order]
+N4 <- N4[random_order]
+
+# add noise to N4
+# set.seed(8)
+N4 <- N4 + rnorm(rowsize, mean=0, sd=sd_vector[4] * 0.3)
+
+
+```
+
+## Generate categorical variables
+```{r}
+# categorical variables ------------------------------------------------
+
+# C1: nominal w/2 values
+C1_values <- c('A', 'B')
+
+C1_values_sample <- rep(C1_values, rowsize / length(C1_values))
+# set.seed(9)
+C1 <- sample(C1_values_sample, rowsize, replace = F)
+
+## Another way of sampling
+# C1 <- sample(C1_values, rowsize, replace = T)
+
+# C2: ordernal  w/3 levels, N4 predictive
+C2_values <- c('low', 'medium', 'high')
+
+# make N4 predictive of C2
+N4_quantile <- quantile(N4, c(0.35, 0.65))
+C2 <- ifelse( N4 < N4_quantile[1], C2_values[1], ifelse( N4 < N4_quantile[2], C2_values[2], C2_values[3] ))
+
+# add noise
+C2_noise_size <- as.integer(rowsize * 0.3)
+# set.seed(10)
+C2_noise_index <- sample(1:rowsize, C2_noise_size, replace = F)
+# set.seed(11)
+C2_noise_value <- sample(C2_values, C2_noise_size, replace = T)
+
+C2[C2_noise_index] <- C2_noise_value
+
+levels(C2) <- c('low', 'medium', 'high')
+```
+
+## Conbine all variables into a single dataset
+```{r}
+synthetic_df <- data.frame(N1=N1, N2=N2, N3=N3, N4=N4, C1=C1, C2=C2)
+synthetic_df
+
+```
+
+## Descriptive statistics for the synthetic dataset
+```{r}
+summary(synthetic_df)
+table(C1)
+table(C2)
+
+```
+
+
+## Visualization
+```{r}
+# import pacakage
+# install.packages("ggplot2",repos = "http://cran.us.r-project.org")
+library(ggplot2)
+```
+
+
+### Histogram
+```{r}
+# histograms for 4 numerical variables
+
+for(i in 1:4){
+    print(
+        ggplot(synthetic_df) +
+            geom_histogram(aes(x = synthetic_df[,i], y = stat(count) / sum(count)), position = "identity", alpha = 1, bins = 15) +
+            labs(x=names(synthetic_df)[i], y="Frequency (%)")
+    )
+}
+
+    
+```
+
+
+### Bar graph
+```{r}
+# Bar graph for categorical variables 
+
+for(i in 5:6){
+    print(
+        ggplot(synthetic_df) +
+            geom_bar(aes(x = synthetic_df[,i], y = stat(count) / sum(count)), position = "identity", alpha = 1) +
+            labs(x=names(synthetic_df)[i], y="Frequency (%)")
+    )
+}
+
+```
+
+### Scatter plot
+```{r}
+# scatter plot for combinations of variables
+
+# nunerical variables
+for(i in 1:3){
+    for(j in (i+1):4){
+          print(
+                ggplot(synthetic_df) +
+                    geom_point(aes(x = synthetic_df[,i], y = synthetic_df[,j])) +
+                    labs(x=names(synthetic_df)[i], y=names(synthetic_df)[j])
+                )
+    }
+}
+
+# categorical variables
+for(i in 1:2){
+    for(j in 1:4){
+          print(
+                ggplot(synthetic_df) +
+                    geom_point(aes(x = synthetic_df[,i+4], y = synthetic_df[,j])) +
+                    labs(x=names(synthetic_df)[i+4], y=names(synthetic_df)[j])
+                )
+    }
+}
+
+```
+
+### Box plot
+```{r}
+# box plot for categorical variables vs. numerical variables
+
+for(i in 1:2){
+    for(j in 1:4){
+          print(
+                ggplot(synthetic_df) +
+                    geom_boxplot(aes(x = synthetic_df[,i+4], y = synthetic_df[,j])) +
+                    labs(x=names(synthetic_df)[i+4], y=names(synthetic_df)[j])
+                )
+    }
+}
+
+
+```
+
+
+### 
+```{r}
+for(i in 1:2){
+    for(j in 1:4){
+          print(
+                ggplot(synthetic_df, aes(x = synthetic_df[,i+4], y = synthetic_df[,j])) +
+                    geom_violin(trim = TRUE) +
+                    geom_boxplot(width=0.1)+ 
+                    labs(x=names(synthetic_df)[i+4], y=names(synthetic_df)[j])
+                )
+    }
+}
+
+```
+
+
+
+
