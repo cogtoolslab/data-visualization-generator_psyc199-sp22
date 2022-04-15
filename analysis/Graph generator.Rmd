@@ -184,8 +184,10 @@ for(i in 1:2){
 ```
 
 
-### 
+### Violin plot
 ```{r}
+
+# Violin plot: alternative of box plot
 for(i in 1:2){
     for(j in 1:4){
           print(
