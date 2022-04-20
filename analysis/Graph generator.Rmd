@@ -6,7 +6,7 @@ output:
   html_document: default
 ---
 
-# Create synthetic dataset
+# 1. Create synthetic dataset
 
 ## Generate numerical variables
 ```{r}
@@ -89,18 +89,20 @@ levels(C2) <- c('low', 'medium', 'high')
 synthetic_df <- data.frame(N1=N1, N2=N2, N3=N3, N4=N4, C1=C1, C2=C2)
 synthetic_df
 
+rm(list = c("N1", "N2", "N3", "N4", "C1", "C2"))
+
 ```
 
 ## Descriptive statistics for the synthetic dataset
 ```{r}
 summary(synthetic_df)
-table(C1)
-table(C2)
+table(synthetic_df$C1)
+table(synthetic_df$C2)
 
 ```
 
 
-## Visualization
+## 2. Visualization
 ```{r}
 # import pacakage
 # install.packages("ggplot2",repos = "http://cran.us.r-project.org")
@@ -202,5 +204,109 @@ for(i in 1:2){
 ```
 
 
+## function: graph_generator(df, vars, graph_type)
+### input:
+* df: A dataframe
+* vars: Names of Variables that used to generate graph. A string or a vector that contains strings.
+* graph_type: The visualization type, including `"histogram"`, `"bar"`, `"scatter"`, `"boxplot"`, and `"violin"`.  
+### output: 
+* A visualization.
+```{r}
+
+graph_generator <- function(df, vars, graph_type){
+  
+  attach(df)
+  
+  if( graph_type == "histogram" ){
+    # histograms for 4 numerical variables
+    plot <- ggplot(df) +
+      geom_histogram(aes(x = get(vars), y = stat(count) / sum(count)), position = "identity", alpha = 1, bins = 15) +
+      labs(x=vars, y="Frequency (%)")
+  }
+  
+  if( graph_type == "bar" ){
+    # Bar graph for categorical variables 
+    plot <- ggplot(df) + 
+      geom_bar(aes(x = get(vars), y = stat(count) / sum(count)), position = "identity", alpha = 1) +
+      labs(x=vars, y="Frequency (%)")
+  }
+
+  if( graph_type == "scatter" ){
+    # scatter plot for combinations of variables
+    plot <- ggplot(df) + 
+      geom_point(aes(x = get(vars[1]), y = get(vars[2]))) +
+      labs(x=vars[1], y=vars[2])
+  }
+
+  if( graph_type == "boxplot" ){
+    # box plot for categorical variables vs. numerical variables
+    plot <- ggplot(df) +
+      geom_boxplot(aes(x = get(vars[1]), y = get(vars[2]))) +
+      labs(x=vars[1], y=vars[2])
+  }
+  
+  if( graph_type == "violin" ){
+    # Violin plot: alternative of box plot
+    plot <- ggplot(df, aes(x = get(vars[1]), y = get(vars[2]))) +
+      geom_violin(trim = TRUE) +
+      geom_boxplot(width=0.1)+ 
+      labs(x=vars[1], y=vars[2])
+  }
+  
+  detach(df)
+  return(plot)
+}
+
+```
+
+
+```{r}
+graph_generator(synthetic_df, "N1", "histogram")
+graph_generator(synthetic_df, "C1", "bar")
+graph_generator(synthetic_df, c("N3", "N4"), "scatter")
+graph_generator(synthetic_df, c("C2", "N4"), "boxplot")
+graph_generator(synthetic_df, c("C2", "N4"), "violin")
+
+
+```
+
+### Display all visualizations
+```{r}
+
+vars <- names(synthetic_df)
+comb_N_N <- expand.grid(vars[1:4], vars[1:4])
+comb_N_N <- as.matrix( comb_N_N[comb_N_N$Var1 != comb_N_N$Var2, ] )
+
+comb_C_N <- as.matrix( expand.grid(vars[5:6], vars[1:4]) )
+# comb_all <- as.matrix( expand.grid(vars, vars) )
+
+
+for(i in vars[1:4]){
+  print(graph_generator(synthetic_df, i, "histogram"))
+}
+
+for(i in vars[5:6]){
+  print(graph_generator(synthetic_df, i, "bar"))
+}
+
+for(i in split(comb_N_N, row(comb_N_N))){
+  print(graph_generator(synthetic_df, i, "scatter"))
+}
+
+for(i in split(comb_C_N, row(comb_C_N))){
+  print(graph_generator(synthetic_df, i, "scatter"))
+}
+
+for(i in split(comb_C_N, row(comb_C_N))){
+  print(graph_generator(synthetic_df, i, "boxplot"))
+}
+
+for(i in split(comb_C_N, row(comb_C_N))){
+  print(graph_generator(synthetic_df, i, "violin"))
+}
+
+
+
+```
 
 
