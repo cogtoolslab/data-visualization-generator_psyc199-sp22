@@ -49,12 +49,9 @@ __pycache__/
 *.fls
 *.log
 *.synctex.gz
-*.pdf
 
 .DS_Store
-*.csv
 *.json
-*.pdf
 *.png
 *.jpeg
 *.jpg
