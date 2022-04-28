@@ -5,6 +5,11 @@ date: "4/11/2022"
 output:
   html_document: default
 ---
+```{r}
+install.packages("csvy")
+library(csvy)
+
+```
 
 # 1. Create synthetic dataset
 
@@ -97,7 +102,7 @@ rm(list = c("N1", "N2", "N3", "N4", "C1", "C2"))
 
 ```{r}
 setwd(".")
-write.csv(synthetic_df, file.path(getwd(), "synthetic_df.csv"), row.names = FALSE)
+write_csvy(synthetic_df, file.path(getwd(), "synthetic_df.csv"), row.names = FALSE)
 
 ```
 
@@ -438,7 +443,7 @@ auto_graphs_generator <- function(fp){
   dir.create(file.path(dir0, "boxplot"))
   dir.create(file.path(dir0, "violin"))
   
-  df_input <- read.csv(fp)
+  df_input <- read_csvy(fp, stringsAsFactors = T)
   
   # determine variable types ---------------------------
   vartype <- sapply(df_input, class)
