@@ -81,7 +81,8 @@ C2_noise_value <- sample(C2_values, C2_noise_size, replace = T)
 
 C2[C2_noise_index] <- C2_noise_value
 
-levels(C2) <- c('low', 'medium', 'high')
+C2 <- factor(C2, levels=c('low', 'medium', 'high'))
+
 ```
 
 ## Conbine all variables into a single dataset
@@ -93,6 +94,14 @@ rm(list = c("N1", "N2", "N3", "N4", "C1", "C2"))
 
 ```
 
+
+```{r}
+setwd(".")
+write.csv(synthetic_df, file.path(getwd(), "synthetic_df.csv"), row.names = FALSE)
+
+```
+
+
 ## Descriptive statistics for the synthetic dataset
 ```{r}
 summary(synthetic_df)
@@ -102,7 +111,7 @@ table(synthetic_df$C2)
 ```
 
 
-## 2. Visualization
+# 2. Visualization (Hardcode)
 ```{r}
 # import pacakage
 # install.packages("ggplot2",repos = "http://cran.us.r-project.org")
@@ -205,17 +214,15 @@ for(i in 1:2){
 
 
 ## function: graph_generator(df, vars, graph_type)
-### input:
+### input:\
 * df: A dataframe
 * vars: Names of Variables that used to generate graph. A string or a vector that contains strings.
-* graph_type: The visualization type, including `"histogram"`, `"bar"`, `"scatter"`, `"boxplot"`, and `"violin"`.  
-### output: 
+* graph_type: The visualization type, including `"histogram"`, `"bar"`, `"scatter"`, `"boxplot"`, and `"violin"`.\
+### output:\
 * A visualization.
 ```{r}
 
 graph_generator <- function(df, vars, graph_type){
-  
-  attach(df)
   
   if( graph_type == "histogram" ){
     # histograms for 4 numerical variables
@@ -253,7 +260,6 @@ graph_generator <- function(df, vars, graph_type){
       labs(x=vars[1], y=vars[2])
   }
   
-  detach(df)
   return(plot)
 }
 
@@ -279,7 +285,6 @@ comb_N_N <- as.matrix( comb_N_N[comb_N_N$Var1 != comb_N_N$Var2, ] )
 
 comb_C_N <- as.matrix( expand.grid(vars[5:6], vars[1:4]) )
 # comb_all <- as.matrix( expand.grid(vars, vars) )
-
 
 for(i in vars[1:4]){
   print(graph_generator(synthetic_df, i, "histogram"))
@@ -307,6 +312,166 @@ for(i in split(comb_C_N, row(comb_C_N))){
 
 
 
+```
+
+# 3. Auto graph generator
+
+Detect the variable types, create the combination for all variables, and display all visualizations.
+```{r}
+
+# find variable types
+vartype <- sapply(synthetic_df, class)
+
+varnames_N <- names(vartype[ (vartype == "numeric") | (vartype == "integer")])
+varnames_C <- names(vartype[ (vartype == "character") | (vartype == "factor") | (vartype == "logical")])
+
+# visualization all combinations
+# vars <- names(synthetic_df)
+
+comb_N_N <- expand.grid(varnames_N, varnames_N)
+comb_N_N <- as.matrix( comb_N_N[comb_N_N$Var1 != comb_N_N$Var2, ] )
+
+comb_C_N <- as.matrix( expand.grid(varnames_C, varnames_N) )
+
+for(i in varnames_N){
+  print(graph_generator(synthetic_df, i, "histogram"))
+}
+
+for(i in varnames_C){
+  print(graph_generator(synthetic_df, i, "bar"))
+}
+
+for(i in split(comb_N_N, row(comb_N_N))){
+  print(graph_generator(synthetic_df, i, "scatter"))
+}
+
+for(i in split(comb_C_N, row(comb_C_N))){
+  print(graph_generator(synthetic_df, i, "scatter"))
+}
+
+for(i in split(comb_C_N, row(comb_C_N))){
+  print(graph_generator(synthetic_df, i, "boxplot"))
+}
+
+for(i in split(comb_C_N, row(comb_C_N))){
+  print(graph_generator(synthetic_df, i, "violin"))
+}
+
+```
+
+
+## function: graph_saver(df, vars, graph_type, dfname, savepath)
+### input:\
+* df: A dataframe
+* vars: Names of Variables that used to generate graph. A string or a vector that contains strings.
+* graph_type: The visualization type, including `"histogram"`, `"bar"`, `"scatter"`, `"boxplot"`, and `"violin"`.
+* dfname: The file name of the dataframe
+* savepath: The path that a graph would be saved into.\
+### output:\
+* A visualization saved into pdf.
+```{r}
+
+graph_saver <- function(df, vars, graph_type, dfname, savepath){ #prefix
+  
+  if( graph_type == "histogram" ){
+    # histograms for 4 numerical variables
+    plot <- ggplot(df) +
+      geom_histogram(aes(x = get(vars), y = stat(count) / sum(count)), position = "identity", alpha = 1, bins = 15) +
+      labs(x=vars, y="Frequency (%)")
+  }
+  
+  if( graph_type == "bar" ){
+    # Bar graph for categorical variables 
+    plot <- ggplot(df) + 
+      geom_bar(aes(x = get(vars), y = stat(count) / sum(count)), position = "identity", alpha = 1) +
+      labs(x=vars, y="Frequency (%)")
+  }
+
+  if( graph_type == "scatter" ){
+    # scatter plot for combinations of variables
+    plot <- ggplot(df) + 
+      geom_point(aes(x = get(vars[1]), y = get(vars[2]))) +
+      labs(x=vars[1], y=vars[2])
+  }
+
+  if( graph_type == "boxplot" ){
+    # box plot for categorical variables vs. numerical variables
+    plot <- ggplot(df) +
+      geom_boxplot(aes(x = get(vars[1]), y = get(vars[2]))) +
+      labs(x=vars[1], y=vars[2])
+  }
+  
+  if( graph_type == "violin" ){
+    # Violin plot: alternative of box plot
+    plot <- ggplot(df, aes(x = get(vars[1]), y = get(vars[2]))) +
+      geom_violin(trim = TRUE) +
+      geom_boxplot(width=0.1)+ 
+      labs(x=vars[1], y=vars[2])
+  }
+  
+  ggsave(filename=paste0(dfname, "-", graph_type, "-", paste(vars, collapse="_"), ".pdf"), plot=plot, path=savepath)
+
+  # return(plot)
+}
+
+
+```
+
+
+## function: auto_graphs_generator(fp)
+### input:\
+* fp: file path of the dataframe.csv
+### output:\
+* Save graphs into pdfs
+
+```{r}
+auto_graphs_generator <- function(fp){
+  
+  # create folders ---------------------------
+  filename <- gsub("\\..*", "", basename(fp))
+  dir0 <- paste0("Graphs-", filename)
+  
+  dir.create(file.path(dir0))
+  dir.create(file.path(dir0, "histogram"))
+  dir.create(file.path(dir0, "bar"))
+  dir.create(file.path(dir0, "scatter"))
+  dir.create(file.path(dir0, "boxplot"))
+  dir.create(file.path(dir0, "violin"))
+  
+  df_input <- read.csv(fp)
+  
+  # determine variable types ---------------------------
+  vartype <- sapply(df_input, class)
+  
+  varnames_N <- names(vartype[ (vartype == "numeric") | (vartype == "integer")])
+  varnames_C <- names(vartype[ (vartype == "character") | (vartype == "factor") | (vartype == "logical")])
+  
+  # combinations of variables as input of graph_generator function ----------
+  comb_N_N <- expand.grid(varnames_N, varnames_N)
+  comb_N_N <- as.matrix( comb_N_N[comb_N_N$Var1 != comb_N_N$Var2, ] )
+  
+  comb_C_N <- as.matrix( expand.grid(varnames_C, varnames_N) )
+  
+  # Generate and save graphs ---------------------------
+  # prefix: sprintf("%02d", 1:length(varnames_N))
+  mapply(graph_saver, list(df_input), varnames_N, list("histogram"), list(filename), list(file.path(dir0, "histogram"))) 
+  
+  mapply(graph_saver, list(df_input), varnames_C, list("bar"), list(filename), list(file.path(dir0, "bar")))
+  
+  mapply(graph_saver, list(df_input), split(comb_N_N, row(comb_N_N)), list("scatter"), list(filename), list(file.path(dir0, "scatter")))
+  
+  mapply(graph_saver, list(df_input), split(comb_C_N, row(comb_C_N)), list("scatter"), list(filename), list(file.path(dir0, "scatter")))
+  
+  mapply(graph_saver, list(df_input), split(comb_C_N, row(comb_C_N)), list("boxplot"), list(filename), list(file.path(dir0, "boxplot")))
+  
+  mapply(graph_saver, list(df_input), split(comb_C_N, row(comb_C_N)), list("violin"), list(filename), list(file.path(dir0, "violin")))
+}
+
+```
+
+```{r}
+path <- file.path(getwd(), "synthetic_df.csv")
+auto_graphs_generator(path)
 ```
 
 
