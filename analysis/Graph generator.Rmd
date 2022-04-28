@@ -6,9 +6,8 @@ output:
   html_document: default
 ---
 ```{r}
-install.packages("csvy")
+# install.packages("csvy")
 library(csvy)
-
 ```
 
 # 1. Create synthetic dataset
@@ -220,9 +219,10 @@ for(i in 1:2){
 
 ## function: graph_generator(df, vars, graph_type)
 ### input:\
-* df: A dataframe
-* vars: Names of Variables that used to generate graph. A string or a vector that contains strings.
-* graph_type: The visualization type, including `"histogram"`, `"bar"`, `"scatter"`, `"boxplot"`, and `"violin"`.\
+* `df` : A dataframe
+* `vars` : Names of Variables that used to generate graph. A string or a vector that contains strings.
+* `graph_type` : The visualization type, including `"histogram"`, `"bar"`, `"scatter"`, `"boxplot"`, and `"violin"`.
+
 ### output:\
 * A visualization.
 ```{r}
@@ -367,11 +367,12 @@ for(i in split(comb_C_N, row(comb_C_N))){
 
 ## function: graph_saver(df, vars, graph_type, dfname, savepath)
 ### input:\
-* df: A dataframe
-* vars: Names of Variables that used to generate graph. A string or a vector that contains strings.
-* graph_type: The visualization type, including `"histogram"`, `"bar"`, `"scatter"`, `"boxplot"`, and `"violin"`.
-* dfname: The file name of the dataframe
-* savepath: The path that a graph would be saved into.\
+* `df` : A dataframe
+* `vars` : Names of Variables that used to generate graph. A string or a vector that contains strings.
+* `graph_type` : The visualization type, including `"histogram"`, `"bar"`, `"scatter"`, `"boxplot"`, and `"violin"`.
+* `dfname` : The file name of the dataframe
+* `savepath` : The path that a graph would be saved into.
+
 ### output:\
 * A visualization saved into pdf.
 ```{r}
@@ -425,7 +426,8 @@ graph_saver <- function(df, vars, graph_type, dfname, savepath){ #prefix
 
 ## function: auto_graphs_generator(fp)
 ### input:\
-* fp: file path of the dataframe.csv
+* `fp` : file path of the dataframe.csv
+
 ### output:\
 * Save graphs into pdfs
 
