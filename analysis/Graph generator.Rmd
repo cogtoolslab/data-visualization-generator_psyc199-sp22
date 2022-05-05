@@ -13,7 +13,7 @@ library(csvy)
 # 1. Create synthetic dataset
 
 ## Generate numerical variables
-```{r}
+```{r echo = FALSE, eval = FALSE}
 # numerical variables ------------------------------------------------
 
 # generate variables -------
@@ -56,7 +56,7 @@ N4 <- N4 + rnorm(rowsize, mean=0, sd=sd_vector[4] * 0.3)
 ```
 
 ## Generate categorical variables
-```{r}
+```{r echo = FALSE, eval = FALSE}
 # categorical variables ------------------------------------------------
 
 # C1: nominal w/2 values
@@ -90,7 +90,7 @@ C2 <- factor(C2, levels=c('low', 'medium', 'high'))
 ```
 
 ## Conbine all variables into a single dataset
-```{r}
+```{r echo = FALSE, eval = FALSE}
 synthetic_df <- data.frame(N1=N1, N2=N2, N3=N3, N4=N4, C1=C1, C2=C2)
 synthetic_df
 
@@ -98,6 +98,98 @@ rm(list = c("N1", "N2", "N3", "N4", "C1", "C2"))
 
 ```
 
+## Make the sybthetic_df with context
+```{r}
+
+rtruncnorm <- function(n, mu, sigma, low, high) {
+  # find quantiles that correspond the the given low and high levels.
+  p_low <- pnorm(low, mu, sigma)
+  p_high <- pnorm(high, mu, sigma)
+  
+  # draw quantiles uniformly between the limits and pass these
+  # to the relevant quantile function.
+  qnorm(runif(n, p_low, p_high), mu, sigma)
+}
+
+# numerical variables ------------------------------------------------
+
+# generate variables -------
+
+rowsize <- 100
+
+# N1 & N2 (independent)
+# N1 is dependent on C1
+
+N2 <- rnorm(rowsize, mean=350, sd=50) # living_expenses
+
+# N3 & N4 (correlated)
+N3 <- rnorm(rowsize, mean=100, sd=15) # IQ
+N4 <- rtruncnorm(rowsize, 3, 0.45, low = 0, high = 4) # GPA
+
+# make N3 & N4 correlated
+N3 <- sort(N3)
+N4 <- sort(N4)
+
+# reorder N3 & N4 at the same time
+# set.seed(7)
+random_order <- sample(1:rowsize, rowsize, replace=F)
+N3 <- N3[random_order]
+N4 <- N4[random_order]
+
+# add noise to N4
+# set.seed(8)
+N4 <- N4 + rnorm(rowsize, mean=0, sd=0.45 * 0.4)
+# Set limits
+minV <- 0; maxV <- 4;
+# Limit vector
+N4 <- sapply(N4, function(y) min(max(y,minV),maxV))
+
+
+# categorical variables ------------------------------------------------
+
+# C1: nominal w/2 values
+C1_values <- c("Female", "Male")
+
+C1_values_sample <- rep(C1_values, rowsize / length(C1_values))
+C1 <- sample(C1_values_sample, rowsize, replace = F)
+
+# N1: dependent on C1
+N1_F <- rnorm(rowsize / length(C1_values), mean=21.4, sd=2.76) # bmi
+N1_M <- rnorm(rowsize / length(C1_values), mean=24.4, sd=3.19) # bmi
+N1 <- rep(0, length(C1))
+N1[C1 == "Female"] <- N1_F
+N1[C1 == "Male"] <- N1_M
+
+## Another way of sampling
+# C1 <- sample(C1_values, rowsize, replace = T)
+
+# C2: ordernal  w/3 levels, N4 predictive
+C2_values <- c('low', 'medium', 'high')
+
+# make N4 predictive of C2
+N4_quantile <- quantile(N4, c(0.35, 0.65))
+C2 <- ifelse( N4 < N4_quantile[1], C2_values[1], ifelse( N4 < N4_quantile[2], C2_values[2], C2_values[3] ))
+
+# add noise
+C2_noise_size <- as.integer(rowsize * 0.4)
+# set.seed(10)
+C2_noise_index <- sample(1:rowsize, C2_noise_size, replace = F)
+# set.seed(11)
+C2_noise_value <- sample(C2_values, C2_noise_size, replace = T)
+
+C2[C2_noise_index] <- C2_noise_value
+
+C2 <- factor(C2, levels=c('low', 'medium', 'high'))
+
+# rename the variables
+synthetic_df <- data.frame(bmi=N1, living_expenses=N2, IQ=N3, GPA=N4, sex=C1, Happiness=C2)
+
+
+# remove global variables ---------------------------------
+rm(list = c("N1", "N2", "N3", "N4", "C1", "C2"))
+
+synthetic_df
+```
 
 ```{r}
 setwd(".")
@@ -107,7 +199,7 @@ write_csvy(synthetic_df, file.path(getwd(), "synthetic_df.csv"), row.names = FAL
 
 
 ## Descriptive statistics for the synthetic dataset
-```{r}
+```{r echo = FALSE, eval = FALSE}
 summary(synthetic_df)
 table(synthetic_df$C1)
 table(synthetic_df$C2)
@@ -124,7 +216,7 @@ library(ggplot2)
 
 
 ### Histogram
-```{r}
+```{r echo = FALSE, eval = FALSE}
 # histograms for 4 numerical variables
 
 for(i in 1:4){
@@ -140,7 +232,7 @@ for(i in 1:4){
 
 
 ### Bar graph
-```{r}
+```{r echo = FALSE, eval = FALSE}
 # Bar graph for categorical variables 
 
 for(i in 5:6){
@@ -154,7 +246,7 @@ for(i in 5:6){
 ```
 
 ### Scatter plot
-```{r}
+```{r echo = FALSE, eval = FALSE}
 # scatter plot for combinations of variables
 
 # nunerical variables
@@ -182,7 +274,7 @@ for(i in 1:2){
 ```
 
 ### Box plot
-```{r}
+```{r echo = FALSE, eval = FALSE}
 # box plot for categorical variables vs. numerical variables
 
 for(i in 1:2){
@@ -200,7 +292,7 @@ for(i in 1:2){
 
 
 ### Violin plot
-```{r}
+```{r echo = FALSE, eval = FALSE}
 
 # Violin plot: alternative of box plot
 for(i in 1:2){
@@ -271,7 +363,7 @@ graph_generator <- function(df, vars, graph_type){
 ```
 
 
-```{r}
+```{r echo = FALSE, eval = FALSE}
 graph_generator(synthetic_df, "N1", "histogram")
 graph_generator(synthetic_df, "C1", "bar")
 graph_generator(synthetic_df, c("N3", "N4"), "scatter")
@@ -282,7 +374,7 @@ graph_generator(synthetic_df, c("C2", "N4"), "violin")
 ```
 
 ### Display all visualizations
-```{r}
+```{r echo = FALSE, eval = FALSE}
 
 vars <- names(synthetic_df)
 comb_N_N <- expand.grid(vars[1:4], vars[1:4])
@@ -322,7 +414,7 @@ for(i in split(comb_C_N, row(comb_C_N))){
 # 3. Auto graph generator
 
 Detect the variable types, create the combination for all variables, and display all visualizations.
-```{r}
+```{r echo = FALSE, eval = FALSE}
 
 # find variable types
 vartype <- sapply(synthetic_df, class)
@@ -382,17 +474,41 @@ graph_saver <- function(df, vars, graph_type, dfname, savepath){ #prefix
   if( graph_type == "histogram" ){
     # histograms for 4 numerical variables
     plot <- ggplot(df) +
-      geom_histogram(aes(x = get(vars), y = stat(count) / sum(count)), position = "identity", alpha = 1, bins = 15) +
+      geom_histogram(aes(x = get(vars), y = stat(count) / sum(count) *100), position = "identity", alpha = 1, bins = 15) +
       labs(x=vars, y="Frequency (%)")
   }
   
   if( graph_type == "bar" ){
     # Bar graph for categorical variables 
     plot <- ggplot(df) + 
-      geom_bar(aes(x = get(vars), y = stat(count) / sum(count)), position = "identity", alpha = 1) +
+      geom_bar(aes(x = get(vars), y = stat(count) / sum(count) *100), position = "identity", alpha = 1) +
       labs(x=vars, y="Frequency (%)")
   }
 
+  if( graph_type == "pie" ){
+    # Pie chart for categorical variables 
+    
+    # Create Data
+    data <- data.frame(prop.table(table(df[vars])))
+    names(data) <- c("group", "prop")
+    data$prop <- data$prop *100
+    
+    # Compute the position of labels
+    data$ypos <- cumsum(data$prop)- 0.5* data$prop
+    
+    # Basic piechart
+    plot <- ggplot(data, aes(x="", y=prop, fill=group)) +
+      geom_bar(stat="identity", width=1, color="white") +
+      coord_polar("y", start=0) +
+      theme_void() + 
+      
+      geom_text(aes(y = ypos, label = group), color = "white", size=6) +
+      scale_fill_brewer(palette="Set1") +
+      ggtitle(vars)+
+      theme(plot.title = element_text(hjust = 0.5),
+            legend.position="none")
+  }  
+  
   if( graph_type == "scatter" ){
     # scatter plot for combinations of variables
     plot <- ggplot(df) + 
@@ -401,24 +517,41 @@ graph_saver <- function(df, vars, graph_type, dfname, savepath){ #prefix
   }
 
   if( graph_type == "boxplot" ){
-    # box plot for categorical variables vs. numerical variables
-    plot <- ggplot(df) +
-      geom_boxplot(aes(x = get(vars[1]), y = get(vars[2]))) +
-      labs(x=vars[1], y=vars[2])
+    
+    if(length(vars) == 2){
+      # box plot for categorical variables vs. numerical variables
+      plot <- ggplot(df) +
+        geom_boxplot(aes(x = get(vars[1]), y = get(vars[2]))) +
+        labs(x=vars[1], y=vars[2])
+    }else{
+      # box plot for numerical variables
+      plot <- ggplot(df) +
+        geom_boxplot(aes(x=get(vars), y="")) +
+        labs(x=vars, y="Frequency")
+    }
   }
   
   if( graph_type == "violin" ){
-    # Violin plot: alternative of box plot
-    plot <- ggplot(df, aes(x = get(vars[1]), y = get(vars[2]))) +
-      geom_violin(trim = TRUE) +
-      geom_boxplot(width=0.1)+ 
-      labs(x=vars[1], y=vars[2])
+    if(length(vars) == 2){
+      # Violin plot: alternative of box plot
+      plot <- ggplot(df, aes(x = get(vars[1]), y = get(vars[2]))) +
+        geom_violin(trim = TRUE) +
+        geom_boxplot(width=0.1)+ 
+        labs(x=vars[1], y=vars[2])
+    }else{
+      # Violin plot for numerical variables
+      plot <- ggplot(df, aes(x=get(vars), y="")) +
+        geom_violin(trim = TRUE) +
+        geom_boxplot(width=0.1) +
+        labs(x=vars, y="Frequency")
+    }
   }
   
-  ggsave(filename=paste0(dfname, "-", graph_type, "-", paste(vars, collapse="_"), ".pdf"), plot=plot, path=savepath)
+  ggsave(filename=paste0(dfname, "-", graph_type, "-", paste(vars, collapse=","), ".pdf"), plot=plot, path=savepath)
 
   # return(plot)
 }
+
 
 
 ```
@@ -441,6 +574,7 @@ auto_graphs_generator <- function(fp){
   dir.create(file.path(dir0))
   dir.create(file.path(dir0, "histogram"))
   dir.create(file.path(dir0, "bar"))
+  dir.create(file.path(dir0, "pie"))  
   dir.create(file.path(dir0, "scatter"))
   dir.create(file.path(dir0, "boxplot"))
   dir.create(file.path(dir0, "violin"))
@@ -465,15 +599,22 @@ auto_graphs_generator <- function(fp){
   
   mapply(graph_saver, list(df_input), varnames_C, list("bar"), list(filename), list(file.path(dir0, "bar")))
   
+  mapply(graph_saver, list(df_input), varnames_C, list("pie"), list(filename), list(file.path(dir0, "pie")))
+  
   mapply(graph_saver, list(df_input), split(comb_N_N, row(comb_N_N)), list("scatter"), list(filename), list(file.path(dir0, "scatter")))
   
-  mapply(graph_saver, list(df_input), split(comb_C_N, row(comb_C_N)), list("scatter"), list(filename), list(file.path(dir0, "scatter")))
+  # mapply(graph_saver, list(df_input), split(comb_C_N, row(comb_C_N)), list("scatter"), list(filename), list(file.path(dir0, "scatter")))
   
   mapply(graph_saver, list(df_input), split(comb_C_N, row(comb_C_N)), list("boxplot"), list(filename), list(file.path(dir0, "boxplot")))
   
   mapply(graph_saver, list(df_input), split(comb_C_N, row(comb_C_N)), list("violin"), list(filename), list(file.path(dir0, "violin")))
-}
 
+
+  mapply(graph_saver, list(df_input), varnames_N, list("boxplot"), list(filename), list(file.path(dir0, "boxplot")))
+
+  mapply(graph_saver, list(df_input), varnames_N, list("violin"), list(filename), list(file.path(dir0, "violin")))
+
+}
 ```
 
 ```{r}
@@ -482,3 +623,307 @@ auto_graphs_generator(path)
 ```
 
 
+# Questions
+```{r}
+
+
+
+library(dplyr)
+
+path <- file.path(getwd(), "synthetic_df.csv")
+fp <- path
+  
+## function starts
+Questions_generator <- function(fp) {
+  # read graph files -----------------------------------
+  filename <- gsub("\\..*", "", basename(fp))
+  dir0 <- paste0("Graphs-", filename)
+  
+  # if the directory of graphs doesn't exist, create it
+  if(!dir.exists(file.path(dir0))){
+    auto_graphs_generator(path)
+  }
+  
+  paths <- list.files(path = file.path(dir0), all.files = T, full.names = T, recursive = T)
+  
+  # read variables from the graph files ---------------------------
+  list_graph_V1_V2 <- lapply( strsplit(paths, c("-|\\,|\\.")), function(x) x[ 3 : (length(x)-1)])
+  
+  ml <- max(lengths(list_graph_V1_V2))
+  df_graph_X1_X2 <- data.frame( do.call(rbind, lapply(list_graph_V1_V2, function(x) `length<-`(unlist(x), ml))))
+  
+  df_graph_X1_X2$path <- paths
+  
+  names(df_graph_X1_X2) <- c("graph_type", "X1", "X2", "path")
+  
+  df_graph_X1_X2 <- df_graph_X1_X2[, c("path", "graph_type", "X1", "X2")]
+  
+  
+  # determine variable types from df.csv
+  df_input <- read_csvy(fp, stringsAsFactors = T)
+  
+  vartype <- sapply(df_input, class)
+  
+  varnames_N <- names(vartype[ (vartype == "numeric") | (vartype == "integer")])
+  varnames_C <- names(vartype[ (vartype == "character") | (vartype == "factor") | (vartype == "logical")])
+  
+  X1_type <- ifelse(df_graph_X1_X2$X1 %in% varnames_N, "N", ifelse(df_X1_X2$X1 %in% varnames_C, "C", NA))
+  X2_type <- ifelse(df_graph_X1_X2$X2 %in% varnames_N, "N", ifelse(df_X1_X2$X2 %in% varnames_C, "C", NA))
+  
+  df_X1_X2_types <- data.frame(X1=df_graph_X1_X2$X1, X2=df_graph_X1_X2$X2, X1_type=X1_type, X2_type=X2_type)
+  
+  # varnames_N -------------------------------------------------
+  # NA ---------------------------------------------------------
+  # "histogram"
+  # "boxplot"
+  # "violin"
+  
+  df_sub <- df_X1_X2_types[(df_X1_X2_types$X1_type == "N") & (is.na(df_X1_X2_types$X2_type)), ]
+  
+  df_sub <- subset(df_sub, select=c("X1","X2"))
+  
+  df_sub <- df_sub[!duplicated(df_sub), ]
+  
+  Q_N_NA <- c(
+    'sprintf("What is the range of %s?", df_sub_Q$X1)',
+    'sprintf("What is the standard deviation of %s?", df_sub_Q$X1)',
+    'sprintf("What is the mean of %s?", df_sub_Q$X1)',
+    'sprintf("What is the median of %s?", df_sub_Q$X1)',
+    'sprintf("What is the maximum of %s?", df_sub_Q$X1)',
+    'sprintf("What is the minimum of %s?", df_sub_Q$X1)',
+    'sprintf("Which interval has the highest frequency in %s?", df_sub_Q$X1)'
+  )
+  
+  df_Q_N_NA <- data.frame()
+  
+  for(q in Q_N_NA){
+    df_sub_Q <- df_sub
+    df_sub_Q$Questions <- eval(parse(text=q))
+    df_Q_N_NA <- rbind(df_Q_N_NA, df_sub_Q)
+  }
+  
+  # varnames_C -------------------------------------------------
+  # NA ---------------------------------------------------------
+  # "bar"
+  # "pie"
+  
+  df_sub <- df_X1_X2_types[(df_X1_X2_types$X1_type == "C") & (is.na(df_X1_X2_types$X2_type)),]
+  df_sub <- subset(df_sub, select=c("X1","X2"))
+  df_sub <- df_sub[!duplicated(df_sub), ]
+  
+  list_levels <- sapply(df_input[, unique(df_sub$X1)], levels)
+  
+  df_level <- data.frame(unlist(list_levels, use.names=F))
+  df_level$X1 <- rep(names(list_levels), lengths(list_levels))
+  names(df_level)[1] <- "level"
+  
+  df_sub <- merge(df_sub, df_level, by=c("X1"), all.x=TRUE)
+  
+  df_l1l2 <- df_level %>%
+    group_by(X1) %>%
+    group_map(~t(combn(.x$level, 2))) %>%
+    setNames(unique(sort(df_level$X1)))
+  
+  level_listmat <- lapply(seq_along(df_l1l2), 
+                          function(i) {
+                              d <- data.frame( cbind( names(df_l1l2)[[i]], df_l1l2[[i]] ))
+                              names(d) <- c("X1", "l1", "l2")
+                              
+                              m <- merge(df_sub, d, by=c("X1"))
+                              
+                              return(m)
+                            }
+                          )
+  
+  df_sub <- bind_rows(level_listmat)
+  
+  
+  Q_C_NA <- c(
+    # Y (Percentage) of 1 level
+    'sprintf("What is the percentage of %s in %s?", df_sub_Q$level, df_sub_Q$X1)',
+  
+    # Y (Percentage): Diff of 2 levels
+    'sprintf("What is the difference between the percentage of %s and the percetage of %s in %s?", df_sub_Q$l1, df_sub_Q$l2, df_sub_Q$X1)',
+  
+    # Y (Percentage): Sum of 2 levels
+    'sprintf("What percentage is %s and %s in %s taken together?", df_sub_Q$l1, df_sub_Q$l2, df_sub_Q$X1)',
+  
+    # X (Level): max
+    'sprintf("Which group has the largest proportion in %s?", df_sub_Q$X1)',
+    # X (Level): min
+    'sprintf("Which group has the smallest proportion in %s?", df_sub_Q$X1)',
+  
+    # X (Level): Compare larger
+    'sprintf("Which one has the larger proportion in %s, %s or %s?", df_sub_Q$X1, df_sub_Q$l1, df_sub_Q$l2)',
+    # X (Level): Compare smaller
+    'sprintf("Which one has the smaller proportion in %s, %s or %s?", df_sub_Q$X1, df_sub_Q$l1, df_sub_Q$l2)',
+  
+    # X (Count): Compare larger
+    'sprintf("How many groups in %s has the larger proportion than %s?", df_sub_Q$X1, df_sub_Q$level)',
+    # X (Count): Compare smaller
+    'sprintf("How many groups in %s has the smaller proportion than %s?", df_sub_Q$X1, df_sub_Q$level)',
+  
+    # (Bool): Compare higher
+    'sprintf("The percentage of %s is higher than that of %s in %s.", df_sub_Q$l1, df_sub_Q$l1, df_sub_Q$X1)',
+    # (Bool): Compare lower
+    'sprintf("The percentage of %s is lower than that of %s in %s.", df_sub_Q$l1, df_sub_Q$l2, df_sub_Q$X1)'
+  )
+  
+  df_Q_C_NA <- data.frame()
+  
+  for(q in Q_C_NA){
+    df_sub_Q <- df_sub
+    df_sub_Q$Questions <- eval(parse(text=q))
+    df_Q_C_NA <- rbind(df_Q_C_NA, df_sub_Q)
+  }
+  df_Q_C_NA <- subset(df_Q_C_NA, select=c("X1", "X2", "Questions"))
+  df_Q_C_NA <- df_Q_C_NA[!duplicated(df_Q_C_NA), ]
+  
+  
+  # varnames_N -------------------------------------------------
+  # varnames_N -------------------------------------------------
+  # "scatter"
+  # 'sprintf("What is the range of", df_sub_Q$X1), "?")
+  # 'sprintf("What is the standard deviation of", varnames_N), "?")
+  # 'sprintf("What is the mean of", varnames_N), "?")
+  # 'sprintf("What is the median of", varnames_N), "?")
+  # 'sprintf("What is the maximum of", varnames_N), "?")
+  # 'sprintf("What is the minimum of", varnames_N), "?")
+  
+  df_sub <- na.omit(df_X1_X2_types[(df_X1_X2_types$X1_type == "N") & (df_X1_X2_types$X2_type == "N") , ])
+  df_sub <- subset(df_sub, select=c("X1","X2"))
+  df_sub <- df_sub[!duplicated(df_sub), ]
+  
+  values_df <- data.frame(round(apply(df_input[,varnames_N], 2, median) + apply(df_input[,varnames_N], 2, sd)))
+  
+  values_df <- cbind(rownames(values_df), values_df)
+  rownames(values_df) <- NULL
+  
+  names(values_df) <- c("X1", "value")
+  
+  df_sub <- merge(df_sub, values_df, by=("X1"), all.x=T)
+  
+  
+  Q_N_N <- c(
+    'sprintf("What is best prediction of %s if %s is %d?", df_sub_Q$X2, df_sub_Q$X1, df_sub_Q$value)',
+    'sprintf("What is the relationship between %s and %s?", df_sub_Q$X1, df_sub_Q$X2)',
+    'sprintf("There is no relationship between %s and %s.", df_sub_Q$X1, df_sub_Q$X2)'
+  )
+  
+  df_Q_N_N <- data.frame()
+  
+  for(q in Q_N_N){
+    df_sub_Q <- df_sub
+    df_sub_Q$Questions <- eval(parse(text=q))
+    df_Q_N_N <- rbind(df_Q_N_N, df_sub_Q)
+  }
+  df_Q_N_N <- subset(df_Q_N_N, select=c("X1", "X2", "Questions"))
+  df_Q_N_N <- df_Q_N_N[!duplicated(df_Q_N_N), ]
+  
+  
+  # varnames_C -------------------------------------------------
+  # varnames_N -------------------------------------------------
+  # "boxplot"
+  # "violin"
+  
+  df_sub <- na.omit(df_X1_X2_types[(df_X1_X2_types$X1_type == "C") & (df_X1_X2_types$X2_type == "N") , ])
+  df_sub <- subset(df_sub, select=c("X1","X2"))
+  df_sub <- df_sub[!duplicated(df_sub), ]
+  
+  
+  list_levels <- sapply(df_input[, unique(df_sub$X1)], levels)
+  
+  df_level <- data.frame(unlist(list_levels, use.names=F))
+  df_level$X1 <- rep(names(list_levels), lengths(list_levels))
+  names(df_level)[1] <- "level"
+  
+  df_sub <- merge(df_sub, df_level, by=c("X1"), all.x=TRUE)
+  
+  df_l1l2 <- df_level %>%
+    group_by(X1) %>%
+    group_map(~t(combn(.x$level, 2))) %>%
+    setNames(unique(sort(df_level$X1)))
+  
+  level_listmat <- lapply(seq_along(df_l1l2), 
+                          function(i) {
+                              d <- data.frame( cbind( names(df_l1l2)[[i]], df_l1l2[[i]] ))
+                              names(d) <- c("X1", "l1", "l2")
+                              
+                              m <- merge(df_sub, d, by=c("X1"))
+                              
+                              return(m)
+                            }
+                          )
+  
+  df_sub <- bind_rows(level_listmat)
+  
+  Q_C_N <- c(
+    'sprintf("What is the range of %s in %s of %s?", df_sub_Q$X2, df_sub_Q$level,  df_sub_Q$X1)',
+    'sprintf("What is the standard deviation of %s in %s of %s?", df_sub_Q$X2, df_sub_Q$level,  df_sub_Q$X1)',
+    'sprintf("What is the mean of %s in %s of %s?", df_sub_Q$X2, df_sub_Q$level,  df_sub_Q$X1)',
+    'sprintf("What is the median of %s in %s of %s?", df_sub_Q$X2, df_sub_Q$level,  df_sub_Q$X1)',
+    'sprintf("What is the maximum of %s in %s of %s?", df_sub_Q$X2, df_sub_Q$level,  df_sub_Q$X1)',
+    'sprintf("What is the minimum of %s in %s of %s?", df_sub_Q$X2, df_sub_Q$level,  df_sub_Q$X1)',
+    
+    'sprintf("Which group in %s has the largest range of %s?", df_sub_Q$X1, df_sub_Q$X2)',
+    'sprintf("Which group in %s has the largest standard deviation of %s?", df_sub_Q$X1, df_sub_Q$X2)',
+    'sprintf("Which group in %s has the largest mean of %s?", df_sub_Q$X1, df_sub_Q$X2)',
+    'sprintf("Which group in %s has the largest median of %s?", df_sub_Q$X1, df_sub_Q$X2)',
+    'sprintf("Which group in %s has the largest maximum of %s?", df_sub_Q$X1, df_sub_Q$X2)',
+    'sprintf("Which group in %s has the largest minimum of %s?", df_sub_Q$X1, df_sub_Q$X2)',
+    
+    'sprintf("Which group in %s has the smallest range of %s?", df_sub_Q$X1, df_sub_Q$X2)',
+    'sprintf("Which group in %s has the smallest standard deviation of %s?", df_sub_Q$X1, df_sub_Q$X2)',
+    'sprintf("Which group in %s has the smallest mean of %s?", df_sub_Q$X1, df_sub_Q$X2)',
+    'sprintf("Which group in %s has the smallest median of %s?", df_sub_Q$X1, df_sub_Q$X2)',
+    'sprintf("Which group in %s has the smallest maximum of %s?", df_sub_Q$X1, df_sub_Q$X2)',
+    'sprintf("Which group in %s has the smallest minimum of %s?", df_sub_Q$X1, df_sub_Q$X2)',
+    
+    
+    'sprintf("How many groups in %s is the median of %s larger than %s?", df_sub_Q$X1, df_sub_Q$X2, df_sub_Q$level)',
+    'sprintf("How many groups in %s is the median of %s smaller than %s?", df_sub_Q$X1, df_sub_Q$X2, df_sub_Q$level)',
+    
+    'sprintf("Which group in %s has a larger range of %s, %s or %s?", df_sub_Q$X1, df_sub_Q$X2, df_sub_Q$l1, df_sub_Q$l2)',
+    'sprintf("Which group in %s has a larger standard deviation of %s, %s or %s?", df_sub_Q$X1, df_sub_Q$X2, df_sub_Q$l1, df_sub_Q$l2)',
+    'sprintf("Which group in %s has a larger mean of %s, %s or %s?", df_sub_Q$X2, df_sub_Q$X2, df_sub_Q$l1, df_sub_Q$l2)',
+    'sprintf("Which group in %s has a larger median of %s, %s or %s?", df_sub_Q$X2, df_sub_Q$X2, df_sub_Q$l1, df_sub_Q$l2)',  
+    'sprintf("Which group in %s has a larger maximum of %s, %s or %s?", df_sub_Q$X2, df_sub_Q$X2, df_sub_Q$l1, df_sub_Q$l2)',
+    'sprintf("Which group in %s has a larger minimum of %s, %s or %s?", df_sub_Q$X1, df_sub_Q$X2, df_sub_Q$l1, df_sub_Q$l2)',  
+    
+    'sprintf("Which group in %s has a smaller range of %s, %s or %s?", df_sub_Q$X1, df_sub_Q$X2, df_sub_Q$l1, df_sub_Q$l2)',
+    'sprintf("Which group in %s has a smaller standard deviation of %s, %s or %s?", df_sub_Q$X1, df_sub_Q$X2, df_sub_Q$l1, df_sub_Q$l2)',
+    'sprintf("Which group in %s has a smaller mean of %s, %s or %s?", df_sub_Q$X1, df_sub_Q$X2, df_sub_Q$l1, df_sub_Q$l2)',
+    'sprintf("Which group in %s has a smaller median of %s, %s or %s?", df_sub_Q$X1, df_sub_Q$X2, df_sub_Q$l1, df_sub_Q$l2)',  
+    'sprintf("Which group in %s has a smaller maximum of %s, %s or %s?", df_sub_Q$X1, df_sub_Q$X2, df_sub_Q$l1, df_sub_Q$l2)',
+    'sprintf("Which group in %s has a smaller minimum of %s, %s or %s?", df_sub_Q$X1, df_sub_Q$X2, df_sub_Q$l1, df_sub_Q$l2)'
+  )
+  
+  df_Q_C_N <- data.frame()
+  
+  for(q in Q_C_N){
+    df_sub_Q <- df_sub
+    df_sub_Q$Questions <- eval(parse(text=q))
+    df_Q_C_N <- rbind(df_Q_C_N, df_sub_Q)
+  }
+  df_Q_C_N <- subset(df_Q_C_N, select=c("X1", "X2", "Questions"))
+  df_Q_C_N <- df_Q_C_N[!duplicated(df_Q_C_N), ]
+  
+  
+  questions_df <- rbind(
+    merge(df_graph_X1_X2, df_Q_N_NA, by=c("X1", "X2"), all.y = T), 
+    merge(df_graph_X1_X2, df_Q_C_NA, by=c("X1", "X2"), all.y = T),
+    merge(df_graph_X1_X2, df_Q_N_N, by=c("X1", "X2"), all.y = T),
+    merge(df_graph_X1_X2, df_Q_C_N, by=c("X1", "X2"), all.y = T)
+  )
+  
+  write.csv(questions_df, file.path(getwd(), paste0("Questions-", filename, ".csv")))
+}
+
+```
+
+
+
+```{r}
+Questions_generator(path)
+
+```
