@@ -459,15 +459,19 @@ for(i in split(comb_C_N, row(comb_C_N))){
 
 ## function: graph_saver(df, vars, graph_type, dfname, savepath)
 ### input:\
-* `df` : A dataframe
+* `df` : A dataframe.
 * `vars` : Names of Variables that used to generate graph. A string or a vector that contains strings.
 * `graph_type` : The visualization type, including `"histogram"`, `"bar"`, `"scatter"`, `"boxplot"`, and `"violin"`.
-* `dfname` : The file name of the dataframe
+* `dfname` : The file name of the dataframe.
 * `savepath` : The path that a graph would be saved into.
 
 ### output:\
 * A visualization saved into pdf.
 ```{r}
+
+library(ggplot2)
+library(dplyr)
+
 
 graph_saver <- function(df, vars, graph_type, dfname, savepath){ #prefix
   
@@ -510,10 +514,24 @@ graph_saver <- function(df, vars, graph_type, dfname, savepath){ #prefix
   }  
   
   if( graph_type == "scatter" ){
-    # scatter plot for combinations of variables
+    # scatter plot for combinations of numerical variables
     plot <- ggplot(df) + 
       geom_point(aes(x = get(vars[1]), y = get(vars[2]))) +
       labs(x=vars[1], y=vars[2])
+  }
+  
+  if( graph_type == "heatmap" ){
+    # heatmap for combinations of categorical variables
+    # Heatmap 
+    plot <- df %>% 
+      count(!! rlang::sym(vars[1]), !! rlang::sym(vars[2]), .drop=FALSE) %>% 
+      mutate(freq = (n / sum(n) *100)) %>%
+      ggplot() + 
+      geom_tile(aes(x=get(vars[1]), y=get(vars[2]), fill=freq)) +
+      labs(x=vars[1], y=vars[2]) +
+      scale_fill_binned(name = "Frequency (%)", 
+                        low = "#79B3FF",
+                        high = "#002C65")
   }
 
   if( graph_type == "boxplot" ){
@@ -576,6 +594,7 @@ auto_graphs_generator <- function(fp){
   dir.create(file.path(dir0, "bar"))
   dir.create(file.path(dir0, "pie"))  
   dir.create(file.path(dir0, "scatter"))
+  dir.create(file.path(dir0, "heatmap"))
   dir.create(file.path(dir0, "boxplot"))
   dir.create(file.path(dir0, "violin"))
   
@@ -591,6 +610,9 @@ auto_graphs_generator <- function(fp){
   comb_N_N <- expand.grid(varnames_N, varnames_N)
   comb_N_N <- as.matrix( comb_N_N[comb_N_N$Var1 != comb_N_N$Var2, ] )
   
+  comb_C_C <- expand.grid(varnames_C, varnames_C)
+  comb_C_C <- as.matrix( comb_C_C[comb_C_C$Var1 != comb_C_C$Var2, ] )
+  
   comb_C_N <- as.matrix( expand.grid(varnames_C, varnames_N) )
   
   # Generate and save graphs ---------------------------
@@ -602,7 +624,9 @@ auto_graphs_generator <- function(fp){
   mapply(graph_saver, list(df_input), varnames_C, list("pie"), list(filename), list(file.path(dir0, "pie")))
   
   mapply(graph_saver, list(df_input), split(comb_N_N, row(comb_N_N)), list("scatter"), list(filename), list(file.path(dir0, "scatter")))
-  
+
+  mapply(graph_saver, list(df_input), split(comb_C_C, row(comb_C_C)), list("heatmap"), list(filename), list(file.path(dir0, "heatmap")))
+    
   # mapply(graph_saver, list(df_input), split(comb_C_N, row(comb_C_N)), list("scatter"), list(filename), list(file.path(dir0, "scatter")))
   
   mapply(graph_saver, list(df_input), split(comb_C_N, row(comb_C_N)), list("boxplot"), list(filename), list(file.path(dir0, "boxplot")))
@@ -622,19 +646,19 @@ path <- file.path(getwd(), "synthetic_df.csv")
 auto_graphs_generator(path)
 ```
 
+## function: Questions_generator(fp)
+### input:\
+* `fp` : file path of the dataframe.csv
 
-# Questions
+### output:\
+* Save questions into .csv file
+
 ```{r}
 
-
-
 library(dplyr)
-
-path <- file.path(getwd(), "synthetic_df.csv")
-fp <- path
   
-## function starts
 Questions_generator <- function(fp) {
+  
   # read graph files -----------------------------------
   filename <- gsub("\\..*", "", basename(fp))
   dir0 <- paste0("Graphs-", filename)
@@ -653,9 +677,7 @@ Questions_generator <- function(fp) {
   df_graph_X1_X2 <- data.frame( do.call(rbind, lapply(list_graph_V1_V2, function(x) `length<-`(unlist(x), ml))))
   
   df_graph_X1_X2$path <- paths
-  
   names(df_graph_X1_X2) <- c("graph_type", "X1", "X2", "path")
-  
   df_graph_X1_X2 <- df_graph_X1_X2[, c("path", "graph_type", "X1", "X2")]
   
   
@@ -805,7 +827,7 @@ Questions_generator <- function(fp) {
   
   
   Q_N_N <- c(
-    'sprintf("What is best prediction of %s if %s is %d?", df_sub_Q$X2, df_sub_Q$X1, df_sub_Q$value)',
+    'sprintf("What is the best prediction of %s if %s is %d?", df_sub_Q$X2, df_sub_Q$X1, df_sub_Q$value)',
     'sprintf("What is the relationship between %s and %s?", df_sub_Q$X1, df_sub_Q$X2)',
     'sprintf("There is no relationship between %s and %s.", df_sub_Q$X1, df_sub_Q$X2)'
   )
@@ -909,6 +931,8 @@ Questions_generator <- function(fp) {
   df_Q_C_N <- df_Q_C_N[!duplicated(df_Q_C_N), ]
   
   
+  
+  # merge all types of variables combinations
   questions_df <- rbind(
     merge(df_graph_X1_X2, df_Q_N_NA, by=c("X1", "X2"), all.y = T), 
     merge(df_graph_X1_X2, df_Q_C_NA, by=c("X1", "X2"), all.y = T),
@@ -924,6 +948,8 @@ Questions_generator <- function(fp) {
 
 
 ```{r}
+path <- file.path(getwd(), "synthetic_df.csv")
+
 Questions_generator(path)
 
 ```
