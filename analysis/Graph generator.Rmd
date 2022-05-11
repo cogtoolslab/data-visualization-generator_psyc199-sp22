@@ -473,7 +473,7 @@ library(ggplot2)
 library(dplyr)
 
 
-graph_saver <- function(df, vars, graph_type, dfname, savepath){ #prefix
+graph_saver <- function(df, vars, varstype, graph_type, dfname, savepath){ #prefix
   
   if( graph_type == "histogram" & length(vars) == 1){
     # histograms for 4 numerical variables
@@ -519,13 +519,13 @@ graph_saver <- function(df, vars, graph_type, dfname, savepath){ #prefix
       labs(x=vars[2], y="Frequency (%)") +
       scale_colour_discrete(name = vars[1])
   }
-    
-  if( graph_type == "bar" & length(vars) == 1){
+
+  if( graph_type == "bar" & length(vars) == 1 & varstype == "C"){
     # Bar graph for categorical variables 
     plot <- ggplot(df) + 
       geom_bar(aes(x = get(vars), y = stat(count) / sum(count) *100), position = "identity") +
       labs(x=vars, y="Frequency (%)")
-  } else if (graph_type == "bar") {
+  } else if (graph_type == "bar" & varstype == "C_C") {
     # stacked bar chart
     plot <- df %>% 
       count(!! rlang::sym(vars[1]), !! rlang::sym(vars[2]), .drop=FALSE) %>% 
@@ -536,22 +536,11 @@ graph_saver <- function(df, vars, graph_type, dfname, savepath){ #prefix
                ) +
       labs(x=vars[1], y="Frequency (%)") +
       scale_fill_discrete(name = vars[2])
-    
-    # plot <- ggplot(df %>% count(get(vars[1]), get(vars[2])) %>%
-    #                  mutate(pct=n/sum(n)),               
-    #               # ypos = cumsum(n) - 0.5*n),  # Calculate label positions
-    #               aes(get(vars[2]), n, fill=get(vars[1]))) +
-    #         geom_bar(stat="identity", position="stack") +
-    #   labs(x=vars[2], y="Frequency (%)") +
-    #   scale_colour_discrete(name = vars[1])
-
-    # Compute the position of labels
-
-  #   plot <- ggplot(df) + 
-  #     geom_bar(aes(x=, y=, fill=get(vars[1])), 
-  #              position="stack", stat="identity") + 
-  #     labs(x=vars[2], y="Frequency (%)") +
-  #     scale_colour_discrete(name = vars[1])
+  } else if (graph_type == "bar" & varstype == "C_N"){
+    plot <- ggplot(df) + 
+      geom_bar(aes(x=get(vars[1]), y=get(vars[2])), 
+               position = "dodge", stat = "summary", fun = "mean") +
+      labs(x=vars[1], y=paste("mean", vars[2]))
   }
 
   if( graph_type == "pie" ){
@@ -625,7 +614,16 @@ graph_saver <- function(df, vars, graph_type, dfname, savepath){ #prefix
       labs(x=vars, y="Frequency")
   }
   
-  
+  if (graph_type == "line" & varstype == "C_N"){
+    plot <- ggplot(df, aes(get(vars[1]), get(vars[2]), group=1)) + 
+      stat_summary(fun.y = mean,
+               fun.ymin = function(x) mean(x) - sd(x), 
+               fun.ymax = function(x) mean(x) + sd(x), 
+               geom = "pointrange") +
+      stat_summary(geom = "line",  fun = mean, size=2) +
+      labs(x=vars[1], y=paste("mean", vars[2]))
+  }
+
   ggsave(filename=paste0(dfname, "-", graph_type, "-", paste(vars, collapse=","), ".pdf"), plot=plot, path=savepath)
 
   # return(plot)
@@ -639,13 +637,13 @@ graph_saver <- function(df, vars, graph_type, dfname, savepath){ #prefix
 ## function: comb_variables(df, type)
 ### input:\
 * `df` : A dataframe.
-* `type` : Combination type of variable. A string. `"N_NA"`, `C_NA`, `N_N`, `C_C`, `C_N`.
+* `varstype` : Combination type of variable. A string. `"N_NA"`, `C_NA`, `N_N`, `C_C`, `C_N`.
 
 ### output:\
 * A vector or a matrix of variable combinations.
 
 ```{r}
-comb_variables <- function(df, type){
+comb_variables <- function(df, varstype){
   # determine variable types ---------------------------
   vartype <- sapply(df, class)
   
@@ -653,31 +651,57 @@ comb_variables <- function(df, type){
   varnames_C <- names(vartype[ (vartype == "character") | (vartype == "factor") | (vartype == "logical")])
   
   # combinations of variables as input of graph_generator function ----------
-  if (type == "N_NA"){
+  if (varstype == "N"){
     return(varnames_N)
     
-  } else if (type == "C_NA"){
+  } else if (varstype == "C"){
     return(varnames_C)
     
-  } else if (type == "N_N"){
+  } else if (varstype == "N_N"){
     comb_N_N <- expand.grid(varnames_N, varnames_N)
     comb_N_N <- as.matrix( comb_N_N[comb_N_N$Var1 != comb_N_N$Var2, ] )
     colnames(comb_N_N) <- c("X1", "X2")
     return(comb_N_N)
     
-  } else if (type == "C_C"){
+  } else if (varstype == "C_C"){
     comb_C_C <- expand.grid(varnames_C, varnames_C)
     comb_C_C <- as.matrix( comb_C_C[comb_C_C$Var1 != comb_C_C$Var2, ] )
     colnames(comb_C_C) <- c("X1", "X2")
     return(comb_C_C)
     
-  } else if (type == "C_N"){
+  } else if (varstype == "C_N"){
     comb_C_N <- as.matrix( expand.grid(varnames_C, varnames_N) )
     colnames(comb_C_N) <- c("X1", "X2")
     return(comb_C_N)
     
   }
   
+}
+
+```
+
+## function: graph_types(varstype)
+### input:\
+* `varstype` : A string indicating Variable types: `"N"`, `"C"`, `"N_N"`, `"C_C"`, `"C_N"`.
+
+### output:\
+* A vector containing the strings of graph types.
+
+```{r}
+graph_types <- function(varstype){
+  if(varstype == "N") {
+    g <- c( "histogram", "density", "freqpoly", "boxplot", "violin" )
+  } else if (varstype == "C") {
+    g <- c( "bar", "pie" )
+  } else if (varstype == "N_N") {
+    g <- c( "scatter" )
+  } else if (varstype == "C_C") {
+    g <- c( "heatmap", "bar" )
+  } else if (varstype == "C_N") {
+    g <- c( "boxplot", "violin", "histogram", "density", "freqpoly", "bar", "line" )
+  }
+  
+  return(g)
 }
 
 ```
@@ -706,12 +730,13 @@ auto_graphs_generator <- function(fp){
   dir.create(file.path(dir0, "heatmap"))
   dir.create(file.path(dir0, "boxplot"))
   dir.create(file.path(dir0, "violin"))
-  
+  dir.create(file.path(dir0, "line"))
+
   df_input <- read_csvy(fp, stringsAsFactors = T)
   
   # determine variable types ---------------------------
-  varnames_N <- comb_variables(df_input, "N_NA")
-  varnames_C <- comb_variables(df_input, "C_NA")
+  varnames_N <- comb_variables(df_input, "N")
+  varnames_C <- comb_variables(df_input, "C")
   comb_N_N <- comb_variables(df_input, "N_N")
   comb_C_C <- comb_variables(df_input, "C_C")
   comb_C_N <- comb_variables(df_input, "C_N")
@@ -720,42 +745,31 @@ auto_graphs_generator <- function(fp){
   # prefix: sprintf("%02d", 1:length(varnames_N))
   
   # N_NA ------
-  mapply(graph_saver, list(df_input), varnames_N, list("histogram"), list(filename), list(file.path(dir0, "histogram"))) 
-  
-  mapply(graph_saver, list(df_input), varnames_N, list("density"), list(filename), list(file.path(dir0, "density")))   
+  for( g in graph_types("N")){
+      mapply(graph_saver, list(df_input), varnames_N, list("N"), list(g), list(filename), list(file.path(dir0, g))) 
+  }
 
-  mapply(graph_saver, list(df_input), varnames_N, list("freqpoly"), list(filename), list(file.path(dir0, "freqpoly")))
-  
-  mapply(graph_saver, list(df_input), varnames_N, list("boxplot"), list(filename), list(file.path(dir0, "boxplot")))
-
-  mapply(graph_saver, list(df_input), varnames_N, list("violin"), list(filename), list(file.path(dir0, "violin")))
-  
   # C_NA ------
-  mapply(graph_saver, list(df_input), varnames_C, list("bar"), list(filename), list(file.path(dir0, "bar")))
-  
-  mapply(graph_saver, list(df_input), varnames_C, list("pie"), list(filename), list(file.path(dir0, "pie")))
+  for( g in graph_types("C")){
+    mapply(graph_saver, list(df_input), varnames_C, list("C"), list(g), list(filename), list(file.path(dir0, g)))
+  }
   
   # N_N ------
-  mapply(graph_saver, list(df_input), split(comb_N_N, row(comb_N_N)), list("scatter"), list(filename), list(file.path(dir0, "scatter")))
-
-  # C_C ------
-  mapply(graph_saver, list(df_input), split(comb_C_C, row(comb_C_C)), list("heatmap"), list(filename), list(file.path(dir0, "heatmap")))
+  for( g in graph_types("N_N")){
+    mapply(graph_saver, list(df_input), split(comb_N_N, row(comb_N_N)), list("N_N"), list(g), list(filename), list(file.path(dir0, g)))
+  }
   
-  mapply(graph_saver, list(df_input), split(comb_C_C, row(comb_C_C)), list("bar"), list(filename), list(file.path(dir0, "bar")))
+  # C_C ------
+  for( g in graph_types("C_C")){
+    mapply(graph_saver, list(df_input), split(comb_C_C, row(comb_C_C)), list("C_C"), list(g), list(filename), list(file.path(dir0, g)))
+  }
   
   # C_N ------
   # mapply(graph_saver, list(df_input), split(comb_C_N, row(comb_C_N)), list("scatter"), list(filename), list(file.path(dir0, "scatter")))
   
-  mapply(graph_saver, list(df_input), split(comb_C_N, row(comb_C_N)), list("boxplot"), list(filename), list(file.path(dir0, "boxplot")))
-  
-  mapply(graph_saver, list(df_input), split(comb_C_N, row(comb_C_N)), list("violin"), list(filename), list(file.path(dir0, "violin")))
-  
-  mapply(graph_saver, list(df_input), split(comb_C_N, row(comb_C_N)), list("histogram"), list(filename), list(file.path(dir0, "histogram"))) 
-
-  mapply(graph_saver, list(df_input), split(comb_C_N, row(comb_C_N)), list("density"), list(filename), list(file.path(dir0, "density")))   
-
-  mapply(graph_saver, list(df_input), split(comb_C_N, row(comb_C_N)), list("freqpoly"), list(filename), list(file.path(dir0, "freqpoly")))
-
+  for( g in graph_types("C_N")){
+    mapply(graph_saver, list(df_input), split(comb_C_N, row(comb_C_N)), list("C_N"), list(g), list(filename), list(file.path(dir0, g)))
+  }
 
 }
 ```
@@ -803,9 +817,9 @@ Questions_generator <- function(fp) {
   # determine variable types ---------------------------
   df_input <- read_csvy(fp, stringsAsFactors = T)
 
-  varnames_N <- comb_variables(df_input, "N_NA")
+  varnames_N <- comb_variables(df_input, "N")
   comb_N_NA <- data.frame(X1=varnames_N, X2=rep(NA, length(varnames_N)))
-  varnames_C <- comb_variables(df_input, "C_NA")
+  varnames_C <- comb_variables(df_input, "C")
   comb_C_NA <- data.frame(X1=varnames_C, X2=rep(NA, length(varnames_C)))
   comb_N_N <- comb_variables(df_input, "N_N")
   comb_C_C <- comb_variables(df_input, "C_C")
@@ -820,20 +834,35 @@ Questions_generator <- function(fp) {
   # "density"
   # "freqpoly"
   
+  
+  df_sub <- cbind(graph_types, comb_N_NA)
+                  
+  df_sub_Q$v1, df_sub_Q$v2, df_sub_Q$v3, df_sub_Q$v4
+
   Q_N_NA <- c(
+    
     'sprintf("What is the range of %s?", df_sub_Q$X1)',
     'sprintf("What is the standard deviation of %s?", df_sub_Q$X1)',
     'sprintf("What is the mean of %s?", df_sub_Q$X1)',
     'sprintf("What is the median of %s?", df_sub_Q$X1)',
     'sprintf("What is the maximum of %s?", df_sub_Q$X1)',
     'sprintf("What is the minimum of %s?", df_sub_Q$X1)',
-    'sprintf("Which interval has the highest frequency in %s?", df_sub_Q$X1)'
+    
+    # VLAT: Find Extremum (e.g. What is the rating that the people have rated the taxi the most?) -----
+    'sprintf("Which interval has the highest frequency in %s?", df_sub_Q$X1)',
+    
+    # # Add VLAT ------
+    # VLAT: Retrieve value (e.g. How many people have rated the taxi between 4.0 and 4.2?) -----
+    'sprintf("What is the proportion of %s between %d and %d?", df_sub_Q$X1, df_sub_Q$v1, df_sub_Q$v2)',
+    
+    # VLAT: Make Comparisons (e.g. More people have rated the taxi between 4.6 and 4.8 than between 4.2 and 4.4)
+    'sprintf("The proportion in %s between %d and %d is larger than between %d and %d.", df_sub_Q$X1, df_sub_Q$v1, df_sub_Q$v2, df_sub_Q$v3, df_sub_Q$v4)'
   )
   
   df_Q_N_NA <- data.frame()
 
   for(q in Q_N_NA){
-    df_sub_Q <- comb_N_NA
+    df_sub_Q <- df_sub
     df_sub_Q$Questions <- eval(parse(text=q))
     df_Q_N_NA <- rbind(df_Q_N_NA, df_sub_Q)
   }
@@ -870,34 +899,46 @@ Questions_generator <- function(fp) {
   df_sub <- bind_rows(level_listmat)
   
   Q_C_NA <- c(
+    
+    # VLAT: Retrieve value (e.g. What is the average internet speed in Japan?) ------
+
     # Y (Percentage) of 1 level
     'sprintf("What is the percentage of %s in %s?", df_sub_Q$level, df_sub_Q$X1)',
-  
+
     # Y (Percentage): Diff of 2 levels
     'sprintf("What is the difference between the percentage of %s and the percetage of %s in %s?", df_sub_Q$l1, df_sub_Q$l2, df_sub_Q$X1)',
-  
+    
     # Y (Percentage): Sum of 2 levels
     'sprintf("What percentage is %s and %s in %s taken together?", df_sub_Q$l1, df_sub_Q$l2, df_sub_Q$X1)',
-  
+    
+    # VLAT: Find Extremum (e.g. In which country is the average internet speed the fastest in Asia?) ------
     # X (Level): max
     'sprintf("Which group has the largest proportion in %s?", df_sub_Q$X1)',
     # X (Level): min
     'sprintf("Which group has the smallest proportion in %s?", df_sub_Q$X1)',
-  
+    
+    # VLAT: Make Comparisons (e.g. The global smartphone market share of Apple is larger than that of Huawei.) -----
     # X (Level): Compare larger
     'sprintf("Which one has a larger proportion in %s, %s or %s?", df_sub_Q$X1, df_sub_Q$l1, df_sub_Q$l2)',
     # X (Level): Compare smaller
     'sprintf("Which one has a smaller proportion in %s, %s or %s?", df_sub_Q$X1, df_sub_Q$l1, df_sub_Q$l2)',
-  
+    
+    # VLAT: Make Comparisons (e.g. How many countries in Asia is the average internet speed slower than Thailand?) -----
     # X (Count): Compare larger
     'sprintf("How many groups in %s has a larger proportion than %s?", df_sub_Q$X1, df_sub_Q$level)',
     # X (Count): Compare smaller
     'sprintf("How many groups in %s has a smaller proportion than %s?", df_sub_Q$X1, df_sub_Q$level)',
-  
+    
+    # VLAT: Make Comparisons (e.g. The global smartphone market share of Apple is larger than that of Huawei.) -----
     # (Bool): Compare higher
     'sprintf("The percentage of %s is higher than that of %s in %s.", df_sub_Q$l1, df_sub_Q$l1, df_sub_Q$X1)',
     # (Bool): Compare lower
-    'sprintf("The percentage of %s is lower than that of %s in %s.", df_sub_Q$l1, df_sub_Q$l2, df_sub_Q$X1)'
+    'sprintf("The percentage of %s is lower than that of %s in %s.", df_sub_Q$l1, df_sub_Q$l2, df_sub_Q$X1)',
+    
+    
+    # Add VLAT ------
+    # VLAT: Determine range (e.g. What is the range of the average internet speed in Asia?)
+    'sprintf("What is the range of the proportion of each group in %s.", df_sub_Q$X1)'
   )
   
   df_Q_C_NA <- data.frame()
@@ -913,40 +954,59 @@ Questions_generator <- function(fp) {
   # varnames_N -------------------------------------------------
   # varnames_N -------------------------------------------------
   # "scatter"
-
+  df_sub_Q$v1 df_sub_Q$v2
   
   values_df <- data.frame(round(apply(df_input[,varnames_N], 2, median) + apply(df_input[,varnames_N], 2, sd)))
   
   values_df <- cbind(rownames(values_df), values_df)
   rownames(values_df) <- NULL
   
-  names(values_df) <- c("X1", "value")
+  names(values_df) <- c("X1", "v0")
   
   df_sub <- merge(comb_N_N, values_df, by=("X1"), all.x=T)
   
 
   Q_N_N <- c(
-    'sprintf("What is the best prediction of %s if %s is %d?", df_sub_Q$X2, df_sub_Q$X1, df_sub_Q$value)',
+    # VLAT: Retrieve value (e.g. What is the weight for the person who is 165.1cm tall?) -----
+    'sprintf("What is the best prediction of %s if %s is %d?", df_sub_Q$X2, df_sub_Q$X1, df_sub_Q$v0)',
+    
+    # VLAT: Find correlations/trends (e.g. There is a negative linear relationship between the height and the weight of the 85 males.) -----
     'sprintf("What is the correlation between %s and %s?", df_sub_Q$X1, df_sub_Q$X2)',
-    'sprintf("There is zero correlation between %s and %s.", df_sub_Q$X1, df_sub_Q$X2)',
+    'sprintf("There is no linear correlation between %s and %s.", df_sub_Q$X1, df_sub_Q$X2)',
     'sprintf("What is the approximate correlation coefficient between %s and %s.", df_sub_Q$X1, df_sub_Q$X2)',
 
     'sprintf("Does %s increase while %s increases?", df_sub_Q$X2, df_sub_Q$X1)',
     'sprintf("Does %s decrease while %s decreases?", df_sub_Q$X2, df_sub_Q$X1)',
-
+    
+    # VLAT: Determine range (e.g. What is the range in weight for the 85 males?) -----
     'sprintf("What is the range of %s?", df_sub_Q$X1)',
     'sprintf("What is the standard deviation of %s?", df_sub_Q$X1)',
     'sprintf("What is the mean of %s?", df_sub_Q$X1)',
     'sprintf("What is the median of %s?", df_sub_Q$X1)',
+    
+    # VLAT: Find Extremum (e.g. What is the height for the tallest person among the 85 males?) -----
     'sprintf("What is the maximum of %s?", df_sub_Q$X1)',
     'sprintf("What is the minimum of %s?", df_sub_Q$X1)',
-
+    
+    # VLAT: Determine range (e.g. What is the range in weight for the 85 males?) -----
     'sprintf("What is the range of %s?", df_sub_Q$X2)',
     'sprintf("What is the standard deviation of %s?", df_sub_Q$X2)',
     'sprintf("What is the mean of %s?", df_sub_Q$X2)',
     'sprintf("What is the median of %s?", df_sub_Q$X2)',
+    
+    # VLAT: Find Extremum (e.g. What is the height for the tallest person among the 85 males?) -----
     'sprintf("What is the maximum of %s?", df_sub_Q$X2)',
-    'sprintf("What is the minimum of %s?", df_sub_Q$X2)'   
+    'sprintf("What is the minimum of %s?", df_sub_Q$X2)',
+    
+    # Add VLAT -----------------------------------------------------------
+    # VLAT: Find anomalies (e.g. What is the height for a person who lies outside the others the most?
+    'sprintf("What is the %s for a point which lies outside the others the most?", df_sub_Q$X2)',
+    
+    # VLAT: Find clusters (e.g. A group of males are gathered around the height of 176 cm and the weight of 70 kg.)
+    'sprintf("A group of points are gathered around the %s of %d and the %s of %d.", df_sub_Q$X1, df_sub_Q$v1, df_sub_Q$X2, df_sub_Q$v2)',
+    
+    # VLAT: Make comparisons (e.g. The weights for males with the height of 188 cm are al the same.)
+    'sprintf("The %s with the %s of %d are all the same.", df_sub_Q$X2, df_sub_Q$X2, df_sub_Q$v0)'
   )
 
   df_Q_N_N <- data.frame()
@@ -959,14 +1019,31 @@ Questions_generator <- function(fp) {
   df_Q_N_N <- df_Q_N_N[, c("X1", "X2", "Questions")]
   df_Q_N_N <- df_Q_N_N[!duplicated(df_Q_N_N),]
 
+  
+  # varnames_C -------------------------------------------------
+  # varnames_C -------------------------------------------------
+  # Heat map
+  # stacked bar chart
+  
+  
+  
+  
   # varnames_C -------------------------------------------------
   # varnames_N -------------------------------------------------
-  # "boxplot"
-  # "violin"
+  
+  # x: N, group: C
   # "stacked histogram"
   # "density"
   # "freqpoly"
   
+  # x: C, y: N
+  # "boxplot"
+  # "violin"
+  
+  # x: C, y: mean of N
+  # bar
+  # line
+
   df_sub <- merge(comb_C_N, df_level, by=c("X1"), all.x=TRUE)
   
   level_listmat <- lapply(seq_along(df_l1l2), 
