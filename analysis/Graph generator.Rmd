@@ -884,41 +884,29 @@ Questions_generator <- function(fp) {
   # "bar"
   # "pie"
   
+  ####
   list_levels <- sapply(df_input[, varnames_C], levels)
   
   df_level <- data.frame(unlist(list_levels, use.names=F))
   df_level$X1 <- rep(names(list_levels), lengths(list_levels))
   names(df_level)[1] <- "level"
-  
+  ####
   
   df_sub <- merge(comb_C_NA, graph_types("C"), all=T)
   names(df_sub)[3] <- "graph_type"
-  df_sub <- merge(df_sub, df_level, by=c("X1"), all.x=TRUE)
   
-  df_l1l2 <- df_level %>%
-    group_by(X1) %>%
-    group_map(~t(combn(.x$level, 2))) %>%
-    setNames(unique(sort(df_level$X1)))
+  df_sub <- merge(df_sub, df_level, by=c("X1"), all=T)
+  df_sub <- merge(df_sub, df_level, by=c("X1"), all=T) 
+  names(df_sub)[c(4, 5)] <- c("l1", "l2")
   
-  level_listmat <- lapply(seq_along(df_l1l2), 
-                          function(i) {
-                              d <- data.frame( cbind( names(df_l1l2)[[i]], df_l1l2[[i]] ))
-                              names(d) <- c("X1", "l1", "l2")
-                              
-                              m <- merge(df_sub, d, by=c("X1"))
-                              
-                              return(m)
-                            }
-                          )
-  
-  df_sub <- bind_rows(level_listmat)
+  df_sub <- df_sub[df_sub$l1 != df_sub$l2,]
   
   Q_C_NA <- c(
     
     # VLAT: Retrieve value (e.g. What is the average internet speed in Japan?) ------
 
     # Y (Percentage) of 1 level
-    'sprintf("What is the percentage of %s in %s?", df_sub_Q$level, df_sub_Q$X1)',
+    'sprintf("What is the percentage of %s in %s?", df_sub_Q$l1, df_sub_Q$X1)',
 
     # Y (Percentage): Diff of 2 levels
     'sprintf("What is the difference between the percentage of %s and the percetage of %s in %s?", df_sub_Q$l1, df_sub_Q$l2, df_sub_Q$X1)',
@@ -940,9 +928,9 @@ Questions_generator <- function(fp) {
     
     # VLAT: Make Comparisons (e.g. How many countries in Asia is the average internet speed slower than Thailand?) -----
     # X (Count): Compare larger
-    'sprintf("How many groups in %s has a larger proportion than %s?", df_sub_Q$X1, df_sub_Q$level)',
+    'sprintf("How many groups in %s has a larger proportion than %s?", df_sub_Q$X1, df_sub_Q$l1)',
     # X (Count): Compare smaller
-    'sprintf("How many groups in %s has a smaller proportion than %s?", df_sub_Q$X1, df_sub_Q$level)',
+    'sprintf("How many groups in %s has a smaller proportion than %s?", df_sub_Q$X1, df_sub_Q$l1)',
     
     # VLAT: Make Comparisons (e.g. The global smartphone market share of Apple is larger than that of Huawei.) -----
     # (Bool): Compare higher
@@ -968,7 +956,7 @@ Questions_generator <- function(fp) {
   
   # varnames_N -------------------------------------------------
   # varnames_N -------------------------------------------------
-  # "scatter"
+  # c( "scatter" )
   
   values_df <- data.frame(
     v0=round(apply(df_input[,varnames_N], 2, median) + apply(df_input[,varnames_N], 2, sd)),
@@ -1041,10 +1029,63 @@ Questions_generator <- function(fp) {
   
   # varnames_C -------------------------------------------------
   # varnames_C -------------------------------------------------
-  # Heat map
-  # stacked bar chart
+  # c( "heatmap", "bar" )
+  # bar is stacked bar chart
+
   
+  df_sub <- merge(comb_C_C, graph_types("C_C"), all=T)
+  names(df_sub)[3] <- "graph_type"
   
+  df_sub <- merge(df_sub, df_level, by.x=c("X1"), by.y=c("X1"), all=T)
+  df_sub <- merge(df_sub, df_level, by.x=c("X2"), by.y=c("X1"), all=T)
+  df_sub <- merge(df_sub, df_level, by.x=c("X1"), by.y=c("X1"), all=T)
+  df_sub <- merge(df_sub, df_level, by.x=c("X2"), by.y=c("X1"), all=T)
+
+  names(df_sub)[4:7] <- c("l1_1", "l2_1", "l1_2", "l2_2")
+  
+  df_sub <- df_sub[(df_sub$l1_1 != df_sub$l1_2) | (df_sub$l2_1 != df_sub$l2_2),]
+
+  Q_C_C <- c(
+    
+    # VLAT: Retrieve value -----
+
+    'sprintf("What is the percentage of the combination of %s and %s whose proportion is the highest?", df_sub_Q$X1, df_sub_Q$X2)',
+    'sprintf("What is the percentage of the combination of %s and %s whose proportion is the lowest?", df_sub_Q$X1, df_sub_Q$X2)',
+    
+    'sprintf("How many combinations\' percentage proportion are between %d and %d?", 10, 20)',
+    'sprintf("How many combinations\' percentage proportion are under %d?", 10)',
+    'sprintf("How many combinations\' percentage proportion are greater than %d?", 20)',
+    
+    # VLAT: Find Extremum -----
+    'sprintf("In the %s %s group, which group in %s has the highest proportion?", df_sub_Q$l1_1, df_sub_Q$X1, df_sub_Q$X2)',    
+    'sprintf("In the %s %s group, which group in %s has the lowest proportion?", df_sub_Q$l1_1, df_sub_Q$X1, df_sub_Q$X2)',   
+
+    'sprintf("In the %s %s group, which group in %s has the highest proportion?", df_sub_Q$l2_1, df_sub_Q$X2, df_sub_Q$X1)',    
+    'sprintf("In the %s %s group, which group in %s has the lowest proportion?", df_sub_Q$l2_1, df_sub_Q$X2, df_sub_Q$X1)', 
+    
+    'sprintf("Which combination of %s and %s has the highest proportion?", df_sub_Q$X1, df_sub_Q$X2)',
+    'sprintf("Which combination of %s and %s has the lowest proportion?", df_sub_Q$X1, df_sub_Q$X2)',
+    
+    # VLAT: Make comparisons -----
+    'sprintf("In the %s %s group, the %s %s group has a larger proportion than %s.", df_sub_Q$l1_1, df_sub_Q$X1, df_sub_Q$l2_1, df_sub_Q$X2, df_sub_Q$l2_2)',    
+    'sprintf("In the %s %s group, the %s %s group has a smaller proportion than %s.", df_sub_Q$l1_1, df_sub_Q$X1, df_sub_Q$l2_1, df_sub_Q$X2, df_sub_Q$l2_2)',     
+    
+    # Add VLAT -------------------------------------------------------------
+    # VLAT: Retrieve value (relative value)
+    'sprintf("What is the proportion of %s %s in %s %s", df_sub_Q$l2_1, df_sub_Q$X2, df_sub_Q$l1_1, df_sub_Q$X1)',       
+    # VLAT: Make comparisons (relative value)
+    'sprintf("The ratio of the proportion of %s to %s in %s %s is higher than of %s %s.", df_sub_Q$l2_1, df_sub_Q$l2_2, df_sub_Q$l1_1, df_sub_Q$X1, df_sub_Q$l1_2, df_sub_Q$X1)'
+  )
+
+  df_Q_C_C <- data.frame()
+  
+  for(q in Q_C_C){
+    df_sub_Q <- df_sub
+    df_sub_Q$Questions <- eval(parse(text=q))
+    df_Q_C_C <- rbind(df_Q_C_C, df_sub_Q)
+  }
+  df_Q_C_C <- df_Q_C_C[, c("graph_type", "X1", "X2", "Questions")]
+  df_Q_C_C <- df_Q_C_C[!duplicated(df_Q_C_C),]
   
   
   # varnames_C -------------------------------------------------
@@ -1060,8 +1101,8 @@ Questions_generator <- function(fp) {
   # "violin"
   
   # x: C, y: mean of N
-  # bar
-  # line
+  # "bar"
+  # "line"
 
   df_sub <- merge(comb_C_N, df_level, by=c("X1"), all.x=TRUE)
   
