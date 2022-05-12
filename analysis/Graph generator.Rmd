@@ -814,7 +814,7 @@ Questions_generator <- function(fp) {
   df_graph_X1_X2 <- df_graph_X1_X2[, c("path", "graph_type", "X1", "X2")]
   
   
-  # determine variable types ---------------------------
+  # combinations of different variable types ----------------------
   df_input <- read_csvy(fp, stringsAsFactors = T)
 
   varnames_N <- comb_variables(df_input, "N")
@@ -828,17 +828,26 @@ Questions_generator <- function(fp) {
   
   # varnames_N -------------------------------------------------
   # NA ---------------------------------------------------------
-  # "histogram"
-  # "boxplot"
-  # "violin"
-  # "density"
-  # "freqpoly"
+  # c( "histogram", "density", "freqpoly", "boxplot", "violin" )
   
-  
-  df_sub <- cbind(graph_types, comb_N_NA)
-                  
-  df_sub_Q$v1, df_sub_Q$v2, df_sub_Q$v3, df_sub_Q$v4
 
+  values_df <- data.frame(
+    v1=round(apply(df_input[,varnames_N], 2, median), 1),
+    v2=round(apply(df_input[,varnames_N], 2, median), 1) + round( apply(df_input[,varnames_N], 2, function(x) diff(range(x))) * 0.1, 1),
+    v3=round(apply(df_input[,varnames_N], 2, min), 1) + round(apply(df_input[,varnames_N], 2, function(x) diff(range(x))) * 0.1, 1),
+    v4=round(apply(df_input[,varnames_N], 2, min), 1) + round(apply(df_input[,varnames_N], 2, function(x) diff(range(x))) * 0.1, 1) * 2
+    )
+  
+  values_df <- cbind(rownames(values_df), values_df)
+  rownames(values_df) <- NULL
+  names(values_df)[1] <- "X1"
+
+  
+  df_sub <- merge(comb_N_NA, graph_types("N"), all=T)
+  names(df_sub)[3] <- "graph_type"
+  
+  df_sub <- merge(df_sub, values_df, by=("X1"), all.x=T)
+  
   Q_N_NA <- c(
     
     'sprintf("What is the range of %s?", df_sub_Q$X1)',
@@ -851,12 +860,12 @@ Questions_generator <- function(fp) {
     # VLAT: Find Extremum (e.g. What is the rating that the people have rated the taxi the most?) -----
     'sprintf("Which interval has the highest frequency in %s?", df_sub_Q$X1)',
     
-    # # Add VLAT ------
+    # # Add VLAT ----------------------------------------------------
     # VLAT: Retrieve value (e.g. How many people have rated the taxi between 4.0 and 4.2?) -----
-    'sprintf("What is the proportion of %s between %d and %d?", df_sub_Q$X1, df_sub_Q$v1, df_sub_Q$v2)',
+    'sprintf("What is the proportion of %s between %.4g and %.4g?", df_sub_Q$X1, df_sub_Q$v1, df_sub_Q$v2)',
     
     # VLAT: Make Comparisons (e.g. More people have rated the taxi between 4.6 and 4.8 than between 4.2 and 4.4)
-    'sprintf("The proportion in %s between %d and %d is larger than between %d and %d.", df_sub_Q$X1, df_sub_Q$v1, df_sub_Q$v2, df_sub_Q$v3, df_sub_Q$v4)'
+    'sprintf("The proportion in %s between %.4g and %.4g is larger than between %f and %f.", df_sub_Q$X1, df_sub_Q$v1, df_sub_Q$v2, df_sub_Q$v3, df_sub_Q$v4)'
   )
   
   df_Q_N_NA <- data.frame()
@@ -866,6 +875,9 @@ Questions_generator <- function(fp) {
     df_sub_Q$Questions <- eval(parse(text=q))
     df_Q_N_NA <- rbind(df_Q_N_NA, df_sub_Q)
   }
+  
+  df_Q_N_NA <- df_Q_N_NA[, c("graph_type", "X1", "X2", "Questions")]
+  df_Q_N_NA <- df_Q_N_NA[!duplicated(df_Q_N_NA), ]
   
   # varnames_C -------------------------------------------------
   # NA ---------------------------------------------------------
@@ -948,7 +960,7 @@ Questions_generator <- function(fp) {
     df_sub_Q$Questions <- eval(parse(text=q))
     df_Q_C_NA <- rbind(df_Q_C_NA, df_sub_Q)
   }
-  df_Q_C_NA <- df_Q_C_NA[, c("X1", "X2", "Questions")]
+  df_Q_C_NA <- df_Q_C_NA[, c("graph_type", "X1", "X2", "Questions")]
   df_Q_C_NA <- df_Q_C_NA[!duplicated(df_Q_C_NA), ]
   
   # varnames_N -------------------------------------------------
@@ -956,12 +968,12 @@ Questions_generator <- function(fp) {
   # "scatter"
   df_sub_Q$v1 df_sub_Q$v2
   
-  values_df <- data.frame(round(apply(df_input[,varnames_N], 2, median) + apply(df_input[,varnames_N], 2, sd)))
+  values_df <- data.frame(v0=round(apply(df_input[,varnames_N], 2, median) + apply(df_input[,varnames_N], 2, sd)))
   
   values_df <- cbind(rownames(values_df), values_df)
   rownames(values_df) <- NULL
   
-  names(values_df) <- c("X1", "v0")
+  names(values_df)[1] <- "X1"
   
   df_sub <- merge(comb_N_N, values_df, by=("X1"), all.x=T)
   
@@ -1016,7 +1028,7 @@ Questions_generator <- function(fp) {
     df_sub_Q$Questions <- eval(parse(text=q))
     df_Q_N_N <- rbind(df_Q_N_N, df_sub_Q)
   }
-  df_Q_N_N <- df_Q_N_N[, c("X1", "X2", "Questions")]
+  df_Q_N_N <- df_Q_N_N[, c("graph_type", "X1", "X2", "Questions")]
   df_Q_N_N <- df_Q_N_N[!duplicated(df_Q_N_N),]
 
   
@@ -1107,15 +1119,15 @@ Questions_generator <- function(fp) {
     df_sub_Q$Questions <- eval(parse(text=q))
     df_Q_C_N <- rbind(df_Q_C_N, df_sub_Q)
   }
-  df_Q_C_N <- df_Q_C_N[, c("X1", "X2", "Questions")]
+  df_Q_C_N <- df_Q_C_N[, c("graph_type", "X1", "X2", "Questions")]
   df_Q_C_N <- df_Q_C_N[!duplicated(df_Q_C_N),]
   
   # merge all types of variables combinations
   questions_df <- rbind(
-    merge(df_graph_X1_X2, df_Q_N_NA, by=c("X1", "X2"), all.y = T), 
-    merge(df_graph_X1_X2, df_Q_C_NA, by=c("X1", "X2"), all.y = T),
-    merge(df_graph_X1_X2, df_Q_N_N, by=c("X1", "X2"), all.y = T),
-    merge(df_graph_X1_X2, df_Q_C_N, by=c("X1", "X2"), all.y = T)
+    merge(df_graph_X1_X2, df_Q_N_NA, by=c("graph_type", "X1", "X2"), all.y = T), 
+    merge(df_graph_X1_X2, df_Q_C_NA, by=c("graph_type", "X1", "X2"), all.y = T),
+    merge(df_graph_X1_X2, df_Q_N_N, by=c("graph_type", "X1", "X2"), all.y = T),
+    merge(df_graph_X1_X2, df_Q_C_N, by=c("graph_type", "X1", "X2"), all.y = T)
   )
   
   write.csv(questions_df, file.path(getwd(), paste0("Questions-", filename, ".csv")))
