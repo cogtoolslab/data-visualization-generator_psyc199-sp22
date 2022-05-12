@@ -1032,7 +1032,6 @@ Questions_generator <- function(fp) {
   # c( "heatmap", "bar" )
   # bar is stacked bar chart
 
-  
   df_sub <- merge(comb_C_C, graph_types("C_C"), all=T)
   names(df_sub)[3] <- "graph_type"
   
@@ -1090,9 +1089,11 @@ Questions_generator <- function(fp) {
   
   # varnames_C -------------------------------------------------
   # varnames_N -------------------------------------------------
+  # c( "boxplot", "violin", "histogram", "density", "freqpoly", "bar", "line" )
   
+  # Q_C_N_1
   # x: N, group: C
-  # "stacked histogram"
+  # "histogram" (stacked)
   # "density"
   # "freqpoly"
   
@@ -1100,32 +1101,28 @@ Questions_generator <- function(fp) {
   # "boxplot"
   # "violin"
   
+  # Q_C_N_2
   # x: C, y: mean of N
   # "bar"
   # "line"
+  df_sub <- merge(comb_C_N, graph_types("C_N"), all=T)
 
-  df_sub <- merge(comb_C_N, df_level, by=c("X1"), all.x=TRUE)
+  names(df_sub)[3] <- "graph_type"
   
-  level_listmat <- lapply(seq_along(df_l1l2), 
-                          function(i) {
-                              d <- data.frame( cbind( names(df_l1l2)[[i]], df_l1l2[[i]] ))
-                              names(d) <- c("X1", "l1", "l2")
-                              
-                              m <- merge(df_sub, d, by=c("X1"))
-                              
-                              return(m)
-                            }
-                          )
+  df_sub <- merge(df_sub, df_level, by.x=c("X1"), by.y=c("X1"), all=T)
+  df_sub <- merge(df_sub, df_level, by.x=c("X1"), by.y=c("X1"), all=T)
+
+  names(df_sub)[4:5] <- c("l1", "l2")
   
-  df_sub <- bind_rows(level_listmat)
+  df_sub <- df_sub[(df_sub$l1 != df_sub$l2), ]
   
-  Q_C_N <- c(
-    'sprintf("What is the range of %s in %s of %s?", df_sub_Q$X2, df_sub_Q$level,  df_sub_Q$X1)',
-    'sprintf("What is the standard deviation of %s in %s of %s?", df_sub_Q$X2, df_sub_Q$level,  df_sub_Q$X1)',
-    'sprintf("What is the mean of %s in %s of %s?", df_sub_Q$X2, df_sub_Q$level,  df_sub_Q$X1)',
-    'sprintf("What is the median of %s in %s of %s?", df_sub_Q$X2, df_sub_Q$level,  df_sub_Q$X1)',
-    'sprintf("What is the maximum of %s in %s of %s?", df_sub_Q$X2, df_sub_Q$level,  df_sub_Q$X1)',
-    'sprintf("What is the minimum of %s in %s of %s?", df_sub_Q$X2, df_sub_Q$level,  df_sub_Q$X1)',
+  Q_C_N_1 <- c(
+    'sprintf("What is the range of %s in %s of %s?", df_sub_Q$X2, df_sub_Q$l1,  df_sub_Q$X1)',
+    'sprintf("What is the standard deviation of %s in %s of %s?", df_sub_Q$X2, df_sub_Q$l1,  df_sub_Q$X1)',
+    'sprintf("What is the mean of %s in %s of %s?", df_sub_Q$X2, df_sub_Q$l1,  df_sub_Q$X1)',
+    'sprintf("What is the median of %s in %s of %s?", df_sub_Q$X2, df_sub_Q$l1,  df_sub_Q$X1)',
+    'sprintf("What is the maximum of %s in %s of %s?", df_sub_Q$X2, df_sub_Q$l1,  df_sub_Q$X1)',
+    'sprintf("What is the minimum of %s in %s of %s?", df_sub_Q$X2, df_sub_Q$l1,  df_sub_Q$X1)',
     
     'sprintf("Which group in %s has the largest range of %s?", df_sub_Q$X1, df_sub_Q$X2)',
     'sprintf("Which group in %s has the largest standard deviation of %s?", df_sub_Q$X1, df_sub_Q$X2)',
@@ -1142,8 +1139,8 @@ Questions_generator <- function(fp) {
     'sprintf("Which group in %s has the smallest minimum of %s?", df_sub_Q$X1, df_sub_Q$X2)',
     
     
-    'sprintf("How many groups in %s is the median of %s larger than %s?", df_sub_Q$X1, df_sub_Q$X2, df_sub_Q$level)',
-    'sprintf("How many groups in %s is the median of %s smaller than %s?", df_sub_Q$X1, df_sub_Q$X2, df_sub_Q$level)',
+    'sprintf("How many groups in %s is the median of %s larger than %s?", df_sub_Q$X1, df_sub_Q$X2, df_sub_Q$l1)',
+    'sprintf("How many groups in %s is the median of %s smaller than %s?", df_sub_Q$X1, df_sub_Q$X2, df_sub_Q$l1)',
     
     'sprintf("Which group in %s has a larger range of %s, %s or %s?", df_sub_Q$X1, df_sub_Q$X2, df_sub_Q$l1, df_sub_Q$l2)',
     'sprintf("Which group in %s has a larger standard deviation of %s, %s or %s?", df_sub_Q$X1, df_sub_Q$X2, df_sub_Q$l1, df_sub_Q$l2)',
@@ -1160,13 +1157,47 @@ Questions_generator <- function(fp) {
     'sprintf("Which group in %s has a smaller minimum of %s, %s or %s?", df_sub_Q$X1, df_sub_Q$X2, df_sub_Q$l1, df_sub_Q$l2)'
   )
   
+  Q_C_N_2 <- c(
+    
+    # VLAT: Retrieve Value
+    'sprintf("What is the average %s in the %s %s?", df_sub_Q$X2, df_sub_Q$l1, df_sub_Q$X1)',
+    
+    # VLAT: Find Extremum
+    'sprintf("In which group of %s has the highest average %s?", df_sub_Q$X1, df_sub_Q$X2)',
+    'sprintf("In which group of %s has the lowest average %s?", df_sub_Q$X1, df_sub_Q$X2)',
+    
+    # VLAT: Make Comparisons
+    'sprintf("In the %s %s group, the average %s is higher than of %s group.", df_sub_Q$l1, df_sub_Q$X1, df_sub_Q$X2, df_sub_Q$l2)',  
+    'sprintf("In the %s %s group, the average %s is lower than of %s group.", df_sub_Q$l1, df_sub_Q$X1, df_sub_Q$X2, df_sub_Q$l2)',  
+    
+    # Add VLAT -----------------------------------------------------------------
+    # VLAT: Determine Range
+    'sprintf("What is the range of average %s among each group in %s", df_sub_Q$X2, df_sub_Q$X1)'
+  )
+  
   df_Q_C_N <- data.frame()
   
-  for(q in Q_C_N){
-    df_sub_Q <- df_sub
+  df_sub_1 <- df_sub[df_sub$graph_type == "boxplot" | 
+                       df_sub$graph_type == "violin" | 
+                       df_sub$graph_type == "histogram" |
+                       df_sub$graph_type == "density" | 
+                       df_sub$graph_type == "freqpoly", ]
+  
+  df_sub_2 <- df_sub[df_sub$graph_type == "bar" | 
+                     df_sub$graph_type == "line", ]
+    
+  for(q in Q_C_N_1){
+    df_sub_Q <- df_sub_1
     df_sub_Q$Questions <- eval(parse(text=q))
     df_Q_C_N <- rbind(df_Q_C_N, df_sub_Q)
   }
+
+  for(q in Q_C_N_2){
+    df_sub_Q <- df_sub_2
+    df_sub_Q$Questions <- eval(parse(text=q))
+    df_Q_C_N <- rbind(df_Q_C_N, df_sub_Q)
+  }
+  
   df_Q_C_N <- df_Q_C_N[, c("graph_type", "X1", "X2", "Questions")]
   df_Q_C_N <- df_Q_C_N[!duplicated(df_Q_C_N),]
   
