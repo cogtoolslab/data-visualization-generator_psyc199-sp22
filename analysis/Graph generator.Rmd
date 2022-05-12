@@ -890,7 +890,10 @@ Questions_generator <- function(fp) {
   df_level$X1 <- rep(names(list_levels), lengths(list_levels))
   names(df_level)[1] <- "level"
   
-  df_sub <- merge(comb_C_NA, df_level, by=c("X1"), all.x=TRUE)
+  
+  df_sub <- merge(comb_C_NA, graph_types("C"), all=T)
+  names(df_sub)[3] <- "graph_type"
+  df_sub <- merge(df_sub, df_level, by=c("X1"), all.x=TRUE)
   
   df_l1l2 <- df_level %>%
     group_by(X1) %>%
@@ -948,7 +951,7 @@ Questions_generator <- function(fp) {
     'sprintf("The percentage of %s is lower than that of %s in %s.", df_sub_Q$l1, df_sub_Q$l2, df_sub_Q$X1)',
     
     
-    # Add VLAT ------
+    # Add VLAT ----------------------------------------------------------
     # VLAT: Determine range (e.g. What is the range of the average internet speed in Asia?)
     'sprintf("What is the range of the proportion of each group in %s.", df_sub_Q$X1)'
   )
@@ -966,21 +969,25 @@ Questions_generator <- function(fp) {
   # varnames_N -------------------------------------------------
   # varnames_N -------------------------------------------------
   # "scatter"
-  df_sub_Q$v1 df_sub_Q$v2
   
-  values_df <- data.frame(v0=round(apply(df_input[,varnames_N], 2, median) + apply(df_input[,varnames_N], 2, sd)))
+  values_df <- data.frame(
+    v0=round(apply(df_input[,varnames_N], 2, median) + apply(df_input[,varnames_N], 2, sd)),
+    v1=round(apply(df_input[,varnames_N], 2, median), 1) + round(apply(df_input[,varnames_N], 2, sd) * 1.5, 1),
+    v2=round(apply(df_input[,varnames_N], 2, median), 1) - round(apply(df_input[,varnames_N], 2, sd) * 1.5, 1)
+  )
   
   values_df <- cbind(rownames(values_df), values_df)
   rownames(values_df) <- NULL
-  
   names(values_df)[1] <- "X1"
-  
-  df_sub <- merge(comb_N_N, values_df, by=("X1"), all.x=T)
-  
 
+  df_sub <- merge(comb_N_N, graph_types("N_N"), all=T)
+  names(df_sub)[3] <- "graph_type"
+  
+  df_sub <- merge(df_sub, values_df, by=("X1"), all.x=T)
+  
   Q_N_N <- c(
     # VLAT: Retrieve value (e.g. What is the weight for the person who is 165.1cm tall?) -----
-    'sprintf("What is the best prediction of %s if %s is %d?", df_sub_Q$X2, df_sub_Q$X1, df_sub_Q$v0)',
+    'sprintf("What is the best prediction of %s if %s is %.4g?", df_sub_Q$X2, df_sub_Q$X1, df_sub_Q$v0)',
     
     # VLAT: Find correlations/trends (e.g. There is a negative linear relationship between the height and the weight of the 85 males.) -----
     'sprintf("What is the correlation between %s and %s?", df_sub_Q$X1, df_sub_Q$X2)',
@@ -1015,10 +1022,10 @@ Questions_generator <- function(fp) {
     'sprintf("What is the %s for a point which lies outside the others the most?", df_sub_Q$X2)',
     
     # VLAT: Find clusters (e.g. A group of males are gathered around the height of 176 cm and the weight of 70 kg.)
-    'sprintf("A group of points are gathered around the %s of %d and the %s of %d.", df_sub_Q$X1, df_sub_Q$v1, df_sub_Q$X2, df_sub_Q$v2)',
+    'sprintf("A group of points are gathered around the %s of %.4g and the %s of %.4g.", df_sub_Q$X1, df_sub_Q$v1, df_sub_Q$X2, df_sub_Q$v2)',
     
     # VLAT: Make comparisons (e.g. The weights for males with the height of 188 cm are al the same.)
-    'sprintf("The %s with the %s of %d are all the same.", df_sub_Q$X2, df_sub_Q$X2, df_sub_Q$v0)'
+    'sprintf("The %s with the %s of %.4g are all the same.", df_sub_Q$X2, df_sub_Q$X1, df_sub_Q$v0)'
   )
 
   df_Q_N_N <- data.frame()
