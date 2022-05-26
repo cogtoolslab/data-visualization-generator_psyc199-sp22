@@ -317,7 +317,7 @@ for(i in 1:2){
 
 ### output:\
 * A visualization.
-```{r}
+```{r echo = FALSE, eval = FALSE}
 
 graph_generator <- function(df, vars, graph_type){
   
@@ -850,22 +850,22 @@ Questions_generator <- function(fp) {
   
   Q_N_NA <- c(
     
-    'sprintf("What is the range of %s?", df_sub_Q$X1)',
-    'sprintf("What is the standard deviation of %s?", df_sub_Q$X1)',
-    'sprintf("What is the mean of %s?", df_sub_Q$X1)',
-    'sprintf("What is the median of %s?", df_sub_Q$X1)',
-    'sprintf("What is the maximum of %s?", df_sub_Q$X1)',
-    'sprintf("What is the minimum of %s?", df_sub_Q$X1)',
+    'sprintf("What is the range of <strong>%s</strong>?", df_sub_Q$X1)',
+    'sprintf("What is the standard deviation of <strong>%s</strong>?", df_sub_Q$X1)',
+    'sprintf("What is the mean of <strong>%s</strong>?", df_sub_Q$X1)',
+    'sprintf("What is the median of <strong>%s</strong>?", df_sub_Q$X1)',
+    'sprintf("What is the maximum of <strong>%s</strong>?", df_sub_Q$X1)',
+    'sprintf("What is the minimum of <strong>%s</strong>?", df_sub_Q$X1)',
     
     # VLAT: Find Extremum (e.g. What is the rating that the people have rated the taxi the most?) -----
-    'sprintf("Which interval has the highest frequency in %s?", df_sub_Q$X1)',
+    'sprintf("Which interval has the highest frequency in <strong>%s</strong>?", df_sub_Q$X1)',
     
     # # Add VLAT ----------------------------------------------------
     # VLAT: Retrieve value (e.g. How many people have rated the taxi between 4.0 and 4.2?) -----
-    'sprintf("What is the proportion of %s between %.4g and %.4g?", df_sub_Q$X1, df_sub_Q$v1, df_sub_Q$v2)',
+    'sprintf("What is the proportion of <strong>%s</strong> between %.4g and %.4g?", df_sub_Q$X1, df_sub_Q$v1, df_sub_Q$v2)',
     
     # VLAT: Make Comparisons (e.g. More people have rated the taxi between 4.6 and 4.8 than between 4.2 and 4.4)
-    'sprintf("The proportion in %s between %.4g and %.4g is larger than between %f and %f.", df_sub_Q$X1, df_sub_Q$v1, df_sub_Q$v2, df_sub_Q$v3, df_sub_Q$v4)'
+    'sprintf("The proportion in <strong>%s</strong> between %.4g and %.4g is larger than between %f and %f.", df_sub_Q$X1, df_sub_Q$v1, df_sub_Q$v2, df_sub_Q$v3, df_sub_Q$v4)'
   )
   
   df_Q_N_NA <- data.frame()
@@ -906,42 +906,42 @@ Questions_generator <- function(fp) {
     # VLAT: Retrieve value (e.g. What is the average internet speed in Japan?) ------
 
     # Y (Percentage) of 1 level
-    'sprintf("What is the percentage of %s in %s?", df_sub_Q$l1, df_sub_Q$X1)',
+    'sprintf("What is the percentage of %s in <strong>%s</strong>?", df_sub_Q$l1, df_sub_Q$X1)',
 
     # Y (Percentage): Diff of 2 levels
-    'sprintf("What is the difference between the percentage of %s and the percetage of %s in %s?", df_sub_Q$l1, df_sub_Q$l2, df_sub_Q$X1)',
+    'sprintf("What is the difference between the percentage of %s and the percetage of %s in <strong>%s</strong>?", df_sub_Q$l1, df_sub_Q$l2, df_sub_Q$X1)',
     
     # Y (Percentage): Sum of 2 levels
-    'sprintf("What percentage is %s and %s in %s taken together?", df_sub_Q$l1, df_sub_Q$l2, df_sub_Q$X1)',
+    'sprintf("What percentage is %s and %s in <strong>%s</strong> taken together?", df_sub_Q$l1, df_sub_Q$l2, df_sub_Q$X1)',
     
     # VLAT: Find Extremum (e.g. In which country is the average internet speed the fastest in Asia?) ------
     # X (Level): max
-    'sprintf("Which group has the largest proportion in %s?", df_sub_Q$X1)',
+    'sprintf("Which group has the largest proportion in <strong>%s</strong>?", df_sub_Q$X1)',
     # X (Level): min
-    'sprintf("Which group has the smallest proportion in %s?", df_sub_Q$X1)',
+    'sprintf("Which group has the smallest proportion in <strong>%s</strong>?", df_sub_Q$X1)',
     
     # VLAT: Make Comparisons (e.g. The global smartphone market share of Apple is larger than that of Huawei.) -----
     # X (Level): Compare larger
-    'sprintf("Which one has a larger proportion in %s, %s or %s?", df_sub_Q$X1, df_sub_Q$l1, df_sub_Q$l2)',
+    'sprintf("Which one has a larger proportion in <strong>%s</strong>, %s or %s?", df_sub_Q$X1, df_sub_Q$l1, df_sub_Q$l2)',
     # X (Level): Compare smaller
-    'sprintf("Which one has a smaller proportion in %s, %s or %s?", df_sub_Q$X1, df_sub_Q$l1, df_sub_Q$l2)',
+    'sprintf("Which one has a smaller proportion in <strong>%s</strong>, %s or %s?", df_sub_Q$X1, df_sub_Q$l1, df_sub_Q$l2)',
     
     # VLAT: Make Comparisons (e.g. How many countries in Asia is the average internet speed slower than Thailand?) -----
     # X (Count): Compare larger
-    'sprintf("How many groups in %s has a larger proportion than %s?", df_sub_Q$X1, df_sub_Q$l1)',
+    'sprintf("How many groups in <strong>%s</strong> has a larger proportion than %s?", df_sub_Q$X1, df_sub_Q$l1)',
     # X (Count): Compare smaller
-    'sprintf("How many groups in %s has a smaller proportion than %s?", df_sub_Q$X1, df_sub_Q$l1)',
+    'sprintf("How many groups in <strong>%s</strong> has a smaller proportion than %s?", df_sub_Q$X1, df_sub_Q$l1)',
     
     # VLAT: Make Comparisons (e.g. The global smartphone market share of Apple is larger than that of Huawei.) -----
     # (Bool): Compare higher
-    'sprintf("The percentage of %s is higher than that of %s in %s.", df_sub_Q$l1, df_sub_Q$l1, df_sub_Q$X1)',
+    'sprintf("The percentage of %s is higher than that of %s in <strong>%s</strong>.", df_sub_Q$l1, df_sub_Q$l1, df_sub_Q$X1)',
     # (Bool): Compare lower
-    'sprintf("The percentage of %s is lower than that of %s in %s.", df_sub_Q$l1, df_sub_Q$l2, df_sub_Q$X1)',
+    'sprintf("The percentage of %s is lower than that of %s in <strong>%s</strong>.", df_sub_Q$l1, df_sub_Q$l2, df_sub_Q$X1)',
     
     
     # Add VLAT ----------------------------------------------------------
     # VLAT: Determine range (e.g. What is the range of the average internet speed in Asia?)
-    'sprintf("What is the range of the proportion of each group in %s.", df_sub_Q$X1)'
+    'sprintf("What is the range of the proportion of each group in <strong>%s</strong>.", df_sub_Q$X1)'
   )
   
   df_Q_C_NA <- data.frame()
@@ -975,45 +975,45 @@ Questions_generator <- function(fp) {
   
   Q_N_N <- c(
     # VLAT: Retrieve value (e.g. What is the weight for the person who is 165.1cm tall?) -----
-    'sprintf("What is the best prediction of %s if %s is %.4g?", df_sub_Q$X2, df_sub_Q$X1, df_sub_Q$v0)',
+    'sprintf("What is the best prediction of <strong>%s</strong> if <strong>%s</strong> is %.4g?", df_sub_Q$X2, df_sub_Q$X1, df_sub_Q$v0)',
     
     # VLAT: Find correlations/trends (e.g. There is a negative linear relationship between the height and the weight of the 85 males.) -----
-    'sprintf("What is the correlation between %s and %s?", df_sub_Q$X1, df_sub_Q$X2)',
-    'sprintf("There is no linear correlation between %s and %s.", df_sub_Q$X1, df_sub_Q$X2)',
-    'sprintf("What is the approximate correlation coefficient between %s and %s.", df_sub_Q$X1, df_sub_Q$X2)',
+    'sprintf("What is the correlation between <strong>%s</strong> and <strong>%s</strong>?", df_sub_Q$X1, df_sub_Q$X2)',
+    'sprintf("There is no linear correlation between <strong>%s</strong> and <strong>%s</strong>.", df_sub_Q$X1, df_sub_Q$X2)',
+    'sprintf("What is the approximate correlation coefficient between <strong>%s</strong> and <strong>%s</strong>.", df_sub_Q$X1, df_sub_Q$X2)',
 
-    'sprintf("Does %s increase while %s increases?", df_sub_Q$X2, df_sub_Q$X1)',
-    'sprintf("Does %s decrease while %s decreases?", df_sub_Q$X2, df_sub_Q$X1)',
+    'sprintf("Does <strong>%s</strong> increase while <strong>%s</strong> increases?", df_sub_Q$X2, df_sub_Q$X1)',
+    'sprintf("Does <strong>%s</strong> decrease while <strong>%s</strong> decreases?", df_sub_Q$X2, df_sub_Q$X1)',
     
     # VLAT: Determine range (e.g. What is the range in weight for the 85 males?) -----
-    'sprintf("What is the range of %s?", df_sub_Q$X1)',
-    'sprintf("What is the standard deviation of %s?", df_sub_Q$X1)',
-    'sprintf("What is the mean of %s?", df_sub_Q$X1)',
-    'sprintf("What is the median of %s?", df_sub_Q$X1)',
+    'sprintf("What is the range of <strong>%s</strong>?", df_sub_Q$X1)',
+    'sprintf("What is the standard deviation of <strong>%s</strong>?", df_sub_Q$X1)',
+    'sprintf("What is the mean of <strong>%s</strong>?", df_sub_Q$X1)',
+    'sprintf("What is the median of <strong>%s</strong>?", df_sub_Q$X1)',
     
     # VLAT: Find Extremum (e.g. What is the height for the tallest person among the 85 males?) -----
-    'sprintf("What is the maximum of %s?", df_sub_Q$X1)',
-    'sprintf("What is the minimum of %s?", df_sub_Q$X1)',
+    'sprintf("What is the maximum of <strong>%s</strong>?", df_sub_Q$X1)',
+    'sprintf("What is the minimum of <strong>%s</strong>?", df_sub_Q$X1)',
     
     # VLAT: Determine range (e.g. What is the range in weight for the 85 males?) -----
-    'sprintf("What is the range of %s?", df_sub_Q$X2)',
-    'sprintf("What is the standard deviation of %s?", df_sub_Q$X2)',
-    'sprintf("What is the mean of %s?", df_sub_Q$X2)',
-    'sprintf("What is the median of %s?", df_sub_Q$X2)',
+    'sprintf("What is the range of <strong>%s</strong>?", df_sub_Q$X2)',
+    'sprintf("What is the standard deviation of <strong>%s</strong>?", df_sub_Q$X2)',
+    'sprintf("What is the mean of <strong>%s</strong>?", df_sub_Q$X2)',
+    'sprintf("What is the median of <strong>%s</strong>?", df_sub_Q$X2)',
     
     # VLAT: Find Extremum (e.g. What is the height for the tallest person among the 85 males?) -----
-    'sprintf("What is the maximum of %s?", df_sub_Q$X2)',
-    'sprintf("What is the minimum of %s?", df_sub_Q$X2)',
+    'sprintf("What is the maximum of <strong>%s</strong>?", df_sub_Q$X2)',
+    'sprintf("What is the minimum of <strong>%s</strong>?", df_sub_Q$X2)',
     
     # Add VLAT -----------------------------------------------------------
     # VLAT: Find anomalies (e.g. What is the height for a person who lies outside the others the most?
-    'sprintf("What is the %s for a point which lies outside the others the most?", df_sub_Q$X2)',
+    'sprintf("What is the <strong>%s</strong> for a point which lies outside the others the most?", df_sub_Q$X2)',
     
     # VLAT: Find clusters (e.g. A group of males are gathered around the height of 176 cm and the weight of 70 kg.)
-    'sprintf("A group of points are gathered around the %s of %.4g and the %s of %.4g.", df_sub_Q$X1, df_sub_Q$v1, df_sub_Q$X2, df_sub_Q$v2)',
+    'sprintf("A group of points are gathered around the <strong>%s</strong> of %.4g and the <strong>%s</strong> of %.4g.", df_sub_Q$X1, df_sub_Q$v1, df_sub_Q$X2, df_sub_Q$v2)',
     
     # VLAT: Make comparisons (e.g. The weights for males with the height of 188 cm are al the same.)
-    'sprintf("The %s with the %s of %.4g are all the same.", df_sub_Q$X2, df_sub_Q$X1, df_sub_Q$v0)'
+    'sprintf("The <strong>%s</strong> with the <strong>%s</strong> of %.4g are all the same.", df_sub_Q$X2, df_sub_Q$X1, df_sub_Q$v0)'
   )
 
   df_Q_N_N <- data.frame()
@@ -1048,32 +1048,32 @@ Questions_generator <- function(fp) {
     
     # VLAT: Retrieve value -----
 
-    'sprintf("What is the percentage of the combination of %s and %s whose proportion is the highest?", df_sub_Q$X1, df_sub_Q$X2)',
-    'sprintf("What is the percentage of the combination of %s and %s whose proportion is the lowest?", df_sub_Q$X1, df_sub_Q$X2)',
+    'sprintf("What is the percentage of the combination of <strong>%s</strong> and <strong>%s</strong> whose proportion is the highest?", df_sub_Q$X1, df_sub_Q$X2)',
+    'sprintf("What is the percentage of the combination of <strong>%s</strong> and <strong>%s</strong> whose proportion is the lowest?", df_sub_Q$X1, df_sub_Q$X2)',
     
     'sprintf("How many combinations\' percentage proportion are between %d and %d?", 10, 20)',
     'sprintf("How many combinations\' percentage proportion are under %d?", 10)',
     'sprintf("How many combinations\' percentage proportion are greater than %d?", 20)',
     
     # VLAT: Find Extremum -----
-    'sprintf("In the %s %s group, which group in %s has the highest proportion?", df_sub_Q$l1_1, df_sub_Q$X1, df_sub_Q$X2)',    
-    'sprintf("In the %s %s group, which group in %s has the lowest proportion?", df_sub_Q$l1_1, df_sub_Q$X1, df_sub_Q$X2)',   
+    'sprintf("In the %s <strong>%s</strong> group, which group in <strong>%s</strong> has the highest proportion?", df_sub_Q$l1_1, df_sub_Q$X1, df_sub_Q$X2)',    
+    'sprintf("In the %s <strong>%s</strong> group, which group in <strong>%s</strong> has the lowest proportion?", df_sub_Q$l1_1, df_sub_Q$X1, df_sub_Q$X2)',   
 
-    'sprintf("In the %s %s group, which group in %s has the highest proportion?", df_sub_Q$l2_1, df_sub_Q$X2, df_sub_Q$X1)',    
-    'sprintf("In the %s %s group, which group in %s has the lowest proportion?", df_sub_Q$l2_1, df_sub_Q$X2, df_sub_Q$X1)', 
+    'sprintf("In the %s <strong>%s</strong> group, which group in <strong>%s</strong> has the highest proportion?", df_sub_Q$l2_1, df_sub_Q$X2, df_sub_Q$X1)',    
+    'sprintf("In the %s <strong>%s</strong> group, which group in <strong>%s</strong> has the lowest proportion?", df_sub_Q$l2_1, df_sub_Q$X2, df_sub_Q$X1)', 
     
-    'sprintf("Which combination of %s and %s has the highest proportion?", df_sub_Q$X1, df_sub_Q$X2)',
-    'sprintf("Which combination of %s and %s has the lowest proportion?", df_sub_Q$X1, df_sub_Q$X2)',
+    'sprintf("Which combination of <strong>%s</strong> and <strong>%s</strong> has the highest proportion?", df_sub_Q$X1, df_sub_Q$X2)',
+    'sprintf("Which combination of <strong>%s</strong> and <strong>%s</strong> has the lowest proportion?", df_sub_Q$X1, df_sub_Q$X2)',
     
     # VLAT: Make comparisons -----
-    'sprintf("In the %s %s group, the %s %s group has a larger proportion than %s.", df_sub_Q$l1_1, df_sub_Q$X1, df_sub_Q$l2_1, df_sub_Q$X2, df_sub_Q$l2_2)',    
-    'sprintf("In the %s %s group, the %s %s group has a smaller proportion than %s.", df_sub_Q$l1_1, df_sub_Q$X1, df_sub_Q$l2_1, df_sub_Q$X2, df_sub_Q$l2_2)',     
+    'sprintf("In the %s <strong>%s</strong> group, the %s <strong>%s</strong> group has a larger proportion than %s.", df_sub_Q$l1_1, df_sub_Q$X1, df_sub_Q$l2_1, df_sub_Q$X2, df_sub_Q$l2_2)',    
+    'sprintf("In the %s <strong>%s</strong> group, the %s <strong>%s</strong> group has a smaller proportion than %s.", df_sub_Q$l1_1, df_sub_Q$X1, df_sub_Q$l2_1, df_sub_Q$X2, df_sub_Q$l2_2)',     
     
     # Add VLAT -------------------------------------------------------------
     # VLAT: Retrieve value (relative value)
-    'sprintf("What is the proportion of %s %s in %s %s", df_sub_Q$l2_1, df_sub_Q$X2, df_sub_Q$l1_1, df_sub_Q$X1)',       
+    'sprintf("What is the proportion of %s <strong>%s</strong> in %s <strong>%s</strong>", df_sub_Q$l2_1, df_sub_Q$X2, df_sub_Q$l1_1, df_sub_Q$X1)',       
     # VLAT: Make comparisons (relative value)
-    'sprintf("The ratio of the proportion of %s to %s in %s %s is higher than of %s %s.", df_sub_Q$l2_1, df_sub_Q$l2_2, df_sub_Q$l1_1, df_sub_Q$X1, df_sub_Q$l1_2, df_sub_Q$X1)'
+    'sprintf("The ratio of the proportion of %s to %s in %s <strong>%s</strong> is higher than of %s <strong>%s</strong>.", df_sub_Q$l2_1, df_sub_Q$l2_2, df_sub_Q$l1_1, df_sub_Q$X1, df_sub_Q$l1_2, df_sub_Q$X1)'
   )
 
   df_Q_C_C <- data.frame()
@@ -1117,62 +1117,62 @@ Questions_generator <- function(fp) {
   df_sub <- df_sub[(df_sub$l1 != df_sub$l2), ]
   
   Q_C_N_1 <- c(
-    'sprintf("What is the range of %s in %s of %s?", df_sub_Q$X2, df_sub_Q$l1,  df_sub_Q$X1)',
-    'sprintf("What is the standard deviation of %s in %s of %s?", df_sub_Q$X2, df_sub_Q$l1,  df_sub_Q$X1)',
-    'sprintf("What is the mean of %s in %s of %s?", df_sub_Q$X2, df_sub_Q$l1,  df_sub_Q$X1)',
-    'sprintf("What is the median of %s in %s of %s?", df_sub_Q$X2, df_sub_Q$l1,  df_sub_Q$X1)',
-    'sprintf("What is the maximum of %s in %s of %s?", df_sub_Q$X2, df_sub_Q$l1,  df_sub_Q$X1)',
-    'sprintf("What is the minimum of %s in %s of %s?", df_sub_Q$X2, df_sub_Q$l1,  df_sub_Q$X1)',
+    'sprintf("What is the range of <strong>%s</strong> in %s <strong>%s</strong>?", df_sub_Q$X2, df_sub_Q$l1,  df_sub_Q$X1)',
+    'sprintf("What is the standard deviation of <strong>%s</strong> in %s <strong>%s</strong>?", df_sub_Q$X2, df_sub_Q$l1,  df_sub_Q$X1)',
+    'sprintf("What is the mean of <strong>%s</strong> in %s <strong>%s</strong>?", df_sub_Q$X2, df_sub_Q$l1,  df_sub_Q$X1)',
+    'sprintf("What is the median of <strong>%s</strong> in %s <strong>%s</strong>?", df_sub_Q$X2, df_sub_Q$l1,  df_sub_Q$X1)',
+    'sprintf("What is the maximum of <strong>%s</strong> in %s <strong>%s</strong>?", df_sub_Q$X2, df_sub_Q$l1,  df_sub_Q$X1)',
+    'sprintf("What is the minimum of <strong>%s</strong> in %s <strong>%s</strong>?", df_sub_Q$X2, df_sub_Q$l1,  df_sub_Q$X1)',
     
-    'sprintf("Which group in %s has the largest range of %s?", df_sub_Q$X1, df_sub_Q$X2)',
-    'sprintf("Which group in %s has the largest standard deviation of %s?", df_sub_Q$X1, df_sub_Q$X2)',
-    'sprintf("Which group in %s has the largest mean of %s?", df_sub_Q$X1, df_sub_Q$X2)',
-    'sprintf("Which group in %s has the largest median of %s?", df_sub_Q$X1, df_sub_Q$X2)',
-    'sprintf("Which group in %s has the largest maximum of %s?", df_sub_Q$X1, df_sub_Q$X2)',
-    'sprintf("Which group in %s has the largest minimum of %s?", df_sub_Q$X1, df_sub_Q$X2)',
+    'sprintf("Which group in <strong>%s</strong> has the largest range of <strong>%s</strong>?", df_sub_Q$X1, df_sub_Q$X2)',
+    'sprintf("Which group in <strong>%s</strong> has the largest standard deviation of <strong>%s</strong>?", df_sub_Q$X1, df_sub_Q$X2)',
+    'sprintf("Which group in <strong>%s</strong> has the largest mean of <strong>%s</strong>?", df_sub_Q$X1, df_sub_Q$X2)',
+    'sprintf("Which group in <strong>%s</strong> has the largest median of <strong>%s</strong>?", df_sub_Q$X1, df_sub_Q$X2)',
+    'sprintf("Which group in <strong>%s</strong> has the largest maximum of <strong>%s</strong>?", df_sub_Q$X1, df_sub_Q$X2)',
+    'sprintf("Which group in <strong>%s</strong> has the largest minimum of <strong>%s</strong>?", df_sub_Q$X1, df_sub_Q$X2)',
     
-    'sprintf("Which group in %s has the smallest range of %s?", df_sub_Q$X1, df_sub_Q$X2)',
-    'sprintf("Which group in %s has the smallest standard deviation of %s?", df_sub_Q$X1, df_sub_Q$X2)',
-    'sprintf("Which group in %s has the smallest mean of %s?", df_sub_Q$X1, df_sub_Q$X2)',
-    'sprintf("Which group in %s has the smallest median of %s?", df_sub_Q$X1, df_sub_Q$X2)',
-    'sprintf("Which group in %s has the smallest maximum of %s?", df_sub_Q$X1, df_sub_Q$X2)',
-    'sprintf("Which group in %s has the smallest minimum of %s?", df_sub_Q$X1, df_sub_Q$X2)',
+    'sprintf("Which group in <strong>%s</strong> has the smallest range of <strong>%s</strong>?", df_sub_Q$X1, df_sub_Q$X2)',
+    'sprintf("Which group in <strong>%s</strong> has the smallest standard deviation of <strong>%s</strong>?", df_sub_Q$X1, df_sub_Q$X2)',
+    'sprintf("Which group in <strong>%s</strong> has the smallest mean of <strong>%s</strong>?", df_sub_Q$X1, df_sub_Q$X2)',
+    'sprintf("Which group in <strong>%s</strong> has the smallest median of <strong>%s</strong>?", df_sub_Q$X1, df_sub_Q$X2)',
+    'sprintf("Which group in <strong>%s</strong> has the smallest maximum of <strong>%s</strong>?", df_sub_Q$X1, df_sub_Q$X2)',
+    'sprintf("Which group in <strong>%s</strong> has the smallest minimum of <strong>%s</strong>?", df_sub_Q$X1, df_sub_Q$X2)',
     
     
-    'sprintf("How many groups in %s is the median of %s larger than %s?", df_sub_Q$X1, df_sub_Q$X2, df_sub_Q$l1)',
-    'sprintf("How many groups in %s is the median of %s smaller than %s?", df_sub_Q$X1, df_sub_Q$X2, df_sub_Q$l1)',
+    'sprintf("How many groups in <strong>%s</strong> is the median of <strong>%s</strong> larger than %s?", df_sub_Q$X1, df_sub_Q$X2, df_sub_Q$l1)',
+    'sprintf("How many groups in <strong>%s</strong> is the median of <strong>%s</strong> smaller than %s?", df_sub_Q$X1, df_sub_Q$X2, df_sub_Q$l1)',
     
-    'sprintf("Which group in %s has a larger range of %s, %s or %s?", df_sub_Q$X1, df_sub_Q$X2, df_sub_Q$l1, df_sub_Q$l2)',
-    'sprintf("Which group in %s has a larger standard deviation of %s, %s or %s?", df_sub_Q$X1, df_sub_Q$X2, df_sub_Q$l1, df_sub_Q$l2)',
-    'sprintf("Which group in %s has a larger mean of %s, %s or %s?", df_sub_Q$X2, df_sub_Q$X2, df_sub_Q$l1, df_sub_Q$l2)',
-    'sprintf("Which group in %s has a larger median of %s, %s or %s?", df_sub_Q$X2, df_sub_Q$X2, df_sub_Q$l1, df_sub_Q$l2)',  
-    'sprintf("Which group in %s has a larger maximum of %s, %s or %s?", df_sub_Q$X2, df_sub_Q$X2, df_sub_Q$l1, df_sub_Q$l2)',
-    'sprintf("Which group in %s has a larger minimum of %s, %s or %s?", df_sub_Q$X1, df_sub_Q$X2, df_sub_Q$l1, df_sub_Q$l2)',  
+    'sprintf("Which group in <strong>%s</strong> has a larger range of <strong>%s</strong>, %s or %s?", df_sub_Q$X1, df_sub_Q$X2, df_sub_Q$l1, df_sub_Q$l2)',
+    'sprintf("Which group in <strong>%s</strong> has a larger standard deviation of <strong>%s</strong>, %s or %s?", df_sub_Q$X1, df_sub_Q$X2, df_sub_Q$l1, df_sub_Q$l2)',
+    'sprintf("Which group in <strong>%s</strong> has a larger mean of <strong>%s</strong>, %s or %s?", df_sub_Q$X1, df_sub_Q$X2, df_sub_Q$l1, df_sub_Q$l2)',
+    'sprintf("Which group in <strong>%s</strong> has a larger median of <strong>%s</strong>, %s or %s?", df_sub_Q$X1, df_sub_Q$X2, df_sub_Q$l1, df_sub_Q$l2)',  
+    'sprintf("Which group in <strong>%s</strong> has a larger maximum of <strong>%s</strong>, %s or %s?", df_sub_Q$X1, df_sub_Q$X2, df_sub_Q$l1, df_sub_Q$l2)',
+    'sprintf("Which group in <strong>%s</strong> has a larger minimum of <strong>%s</strong>, %s or %s?", df_sub_Q$X1, df_sub_Q$X2, df_sub_Q$l1, df_sub_Q$l2)',  
     
-    'sprintf("Which group in %s has a smaller range of %s, %s or %s?", df_sub_Q$X1, df_sub_Q$X2, df_sub_Q$l1, df_sub_Q$l2)',
-    'sprintf("Which group in %s has a smaller standard deviation of %s, %s or %s?", df_sub_Q$X1, df_sub_Q$X2, df_sub_Q$l1, df_sub_Q$l2)',
-    'sprintf("Which group in %s has a smaller mean of %s, %s or %s?", df_sub_Q$X1, df_sub_Q$X2, df_sub_Q$l1, df_sub_Q$l2)',
-    'sprintf("Which group in %s has a smaller median of %s, %s or %s?", df_sub_Q$X1, df_sub_Q$X2, df_sub_Q$l1, df_sub_Q$l2)',  
-    'sprintf("Which group in %s has a smaller maximum of %s, %s or %s?", df_sub_Q$X1, df_sub_Q$X2, df_sub_Q$l1, df_sub_Q$l2)',
-    'sprintf("Which group in %s has a smaller minimum of %s, %s or %s?", df_sub_Q$X1, df_sub_Q$X2, df_sub_Q$l1, df_sub_Q$l2)'
+    'sprintf("Which group in <strong>%s</strong> has a smaller range of <strong>%s</strong>, %s or %s?", df_sub_Q$X1, df_sub_Q$X2, df_sub_Q$l1, df_sub_Q$l2)',
+    'sprintf("Which group in <strong>%s</strong> has a smaller standard deviation of <strong>%s</strong>, %s or %s?", df_sub_Q$X1, df_sub_Q$X2, df_sub_Q$l1, df_sub_Q$l2)',
+    'sprintf("Which group in <strong>%s</strong> has a smaller mean of <strong>%s</strong>, %s or %s?", df_sub_Q$X1, df_sub_Q$X2, df_sub_Q$l1, df_sub_Q$l2)',
+    'sprintf("Which group in <strong>%s</strong> has a smaller median of <strong>%s</strong>, %s or %s?", df_sub_Q$X1, df_sub_Q$X2, df_sub_Q$l1, df_sub_Q$l2)',  
+    'sprintf("Which group in <strong>%s</strong> has a smaller maximum of <strong>%s</strong>, %s or %s?", df_sub_Q$X1, df_sub_Q$X2, df_sub_Q$l1, df_sub_Q$l2)',
+    'sprintf("Which group in <strong>%s</strong> has a smaller minimum of <strong>%s</strong>, %s or %s?", df_sub_Q$X1, df_sub_Q$X2, df_sub_Q$l1, df_sub_Q$l2)'
   )
   
   Q_C_N_2 <- c(
     
     # VLAT: Retrieve Value
-    'sprintf("What is the average %s in the %s %s?", df_sub_Q$X2, df_sub_Q$l1, df_sub_Q$X1)',
+    'sprintf("What is the average <strong>%s</strong> in the %s <strong>%s</strong>?", df_sub_Q$X2, df_sub_Q$l1, df_sub_Q$X1)',
     
     # VLAT: Find Extremum
-    'sprintf("In which group of %s has the highest average %s?", df_sub_Q$X1, df_sub_Q$X2)',
-    'sprintf("In which group of %s has the lowest average %s?", df_sub_Q$X1, df_sub_Q$X2)',
+    'sprintf("In which group of <strong>%s</strong> has the highest average <strong>%s</strong>?", df_sub_Q$X1, df_sub_Q$X2)',
+    'sprintf("In which group of <strong>%s</strong> has the lowest average <strong>%s</strong>?", df_sub_Q$X1, df_sub_Q$X2)',
     
     # VLAT: Make Comparisons
-    'sprintf("In the %s %s group, the average %s is higher than of %s group.", df_sub_Q$l1, df_sub_Q$X1, df_sub_Q$X2, df_sub_Q$l2)',  
-    'sprintf("In the %s %s group, the average %s is lower than of %s group.", df_sub_Q$l1, df_sub_Q$X1, df_sub_Q$X2, df_sub_Q$l2)',  
+    'sprintf("In the group of %s <strong>%s</strong>, the average <strong>%s</strong> is higher than of %s <strong>%s</strong>.", df_sub_Q$l1, df_sub_Q$X1, df_sub_Q$X2, df_sub_Q$l2, df_sub_Q$X1)',  
+    'sprintf("In the group of %s <strong>%s</strong>, the average <strong>%s</strong> is lower than of %s <strong>%s</strong>.", df_sub_Q$l1, df_sub_Q$X1, df_sub_Q$X2, df_sub_Q$l2, df_sub_Q$X1)',  
     
     # Add VLAT -----------------------------------------------------------------
     # VLAT: Determine Range
-    'sprintf("What is the range of average %s among each group in %s", df_sub_Q$X2, df_sub_Q$X1)'
+    'sprintf("What is the range of average <strong>%s</strong> among each group in <strong>%s</strong>", df_sub_Q$X2, df_sub_Q$X1)'
   )
   
   df_Q_C_N <- data.frame()
