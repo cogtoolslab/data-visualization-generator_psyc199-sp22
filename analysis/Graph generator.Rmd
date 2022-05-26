@@ -481,7 +481,9 @@ graph_saver <- function(df, vars, varstype, graph_type, dfname, savepath){ #pref
       geom_histogram(aes(x = get(vars), y = stat(count) / sum(count) *100), 
                      bins = 15,
                      col="white") +
-      labs(x=vars, y="Frequency (%)")
+      labs(x=vars, y="Frequency (%)") + 
+      theme_light(base_size = 14)
+    
   } else if( graph_type == "histogram" ) {
     # stacked histograms
     plot <- ggplot(df) +
@@ -489,7 +491,9 @@ graph_saver <- function(df, vars, varstype, graph_type, dfname, savepath){ #pref
                      bins = 15,
                      col="white") +
       labs(x=vars[2], y="Frequency (%)") +
-      scale_fill_discrete(name = vars[1])
+      scale_fill_discrete(name = vars[1]) + 
+      theme_light(base_size = 14)
+    
   }
   
 
@@ -497,27 +501,35 @@ graph_saver <- function(df, vars, varstype, graph_type, dfname, savepath){ #pref
     # density plot for 4 numerical variables
     plot <- ggplot(df) +
       geom_density(aes(x = get(vars)), adjust = 1/4) +
-      labs(x=vars, y="Density")
+      labs(x=vars, y="Density") + 
+      theme_light(base_size = 14)
+    
   } else if( graph_type == "density" ) {
     # density plot
     plot <- ggplot(df) +
       geom_density(aes(get(vars[2]), colour = get(vars[1])), adjust = 1/4) +
       labs(x=vars[2], y="Density") +
-      scale_colour_discrete(name = vars[1])
+      scale_colour_discrete(name = vars[1]) + 
+      theme_light(base_size = 14)
+    
   }
 
   if( graph_type == "freqpoly" & length(vars) == 1){
     # freqpoly for 4 numerical variables
     plot <- ggplot(df) +
       geom_freqpoly(aes(x = get(vars), y=after_stat(density) *100), bins = 15) +
-      labs(x=vars, y="Frequency (%)")
+      labs(x=vars, y="Frequency (%)") + 
+      theme_light(base_size = 14)
+    
   } else if( graph_type == "freqpoly" ) {
     # freqpoly
     plot <- ggplot(df) +
       geom_freqpoly(aes(x = get(vars[2]), y=after_stat(density) *100, 
                         colour = get(vars[1])), bins = 15) +
       labs(x=vars[2], y="Frequency (%)") +
-      scale_colour_discrete(name = vars[1])
+      scale_colour_discrete(name = vars[1]) + 
+      theme_light(base_size = 14)
+    
   }
 
   if( graph_type == "bar" & length(vars) == 1 & varstype == "C"){
@@ -535,12 +547,16 @@ graph_saver <- function(df, vars, varstype, graph_type, dfname, savepath){ #pref
                stat="identity", position="stack"
                ) +
       labs(x=vars[1], y="Frequency (%)") +
-      scale_fill_discrete(name = vars[2])
+      scale_fill_discrete(name = vars[2]) + 
+      theme_light(base_size = 14)
+    
   } else if (graph_type == "bar" & varstype == "C_N"){
     plot <- ggplot(df) + 
       geom_bar(aes(x=get(vars[1]), y=get(vars[2])), 
                position = "dodge", stat = "summary", fun = "mean") +
-      labs(x=vars[1], y=paste("mean", vars[2]))
+      labs(x=vars[1], y=paste("mean", vars[2])) + 
+      theme_light(base_size = 14)
+    
   }
 
   if( graph_type == "pie" ){
@@ -565,13 +581,16 @@ graph_saver <- function(df, vars, varstype, graph_type, dfname, savepath){ #pref
       ggtitle(vars)+
       theme(plot.title = element_text(hjust = 0.5),
             legend.position="none")
+
   }  
   
   if( graph_type == "scatter" ){
     # scatter plot for combinations of numerical variables
     plot <- ggplot(df) + 
       geom_point(aes(x = get(vars[1]), y = get(vars[2]))) +
-      labs(x=vars[1], y=vars[2])
+      labs(x=vars[1], y=vars[2]) + 
+      theme_light(base_size = 14)
+    
   }
   
   if( graph_type == "heatmap" ){
@@ -585,19 +604,25 @@ graph_saver <- function(df, vars, varstype, graph_type, dfname, savepath){ #pref
         labs(x=vars[1], y=vars[2]) +
         scale_fill_binned(name = "Frequency (%)", 
                           low = "#79B3FF",
-                          high = "#002C65")
+                          high = "#002C65") + 
+      theme_light(base_size = 14)
+    
   }
 
   if( graph_type == "boxplot" & length(vars) == 2){
     # box plot for categorical variables vs. numerical variables
     plot <- ggplot(df) +
       geom_boxplot(aes(x = get(vars[1]), y = get(vars[2]))) +
-      labs(x=vars[1], y=vars[2])
+      labs(x=vars[1], y=vars[2]) + 
+      theme_light(base_size = 14)
+    
   } else if (graph_type == "boxplot"){
     # box plot for numerical variables
     plot <- ggplot(df) +
       geom_boxplot(aes(x=get(vars), y="")) +
-      labs(x=vars, y="")
+      labs(x=vars, y="") + 
+      theme_light(base_size = 14)
+    
   }
   
   if( graph_type == "violin" & length(vars) == 2){
@@ -605,13 +630,17 @@ graph_saver <- function(df, vars, varstype, graph_type, dfname, savepath){ #pref
     plot <- ggplot(df, aes(x = get(vars[1]), y = get(vars[2]))) +
       geom_violin(trim = TRUE) +
       geom_boxplot(width=0.1)+ 
-      labs(x=vars[1], y=vars[2])
+      labs(x=vars[1], y=vars[2]) + 
+      theme_light(base_size = 14)
+    
   } else if (graph_type == "violin"){
     # Violin plot for numerical variables
     plot <- ggplot(df, aes(x=get(vars), y="")) +
       geom_violin(trim = TRUE) +
       geom_boxplot(width=0.1) +
-      labs(x=vars, y="Frequency")
+      labs(x=vars, y="Frequency") + 
+      theme_light(base_size = 14)
+    
   }
   
   if (graph_type == "line" & varstype == "C_N"){
@@ -621,10 +650,20 @@ graph_saver <- function(df, vars, varstype, graph_type, dfname, savepath){ #pref
                fun.ymax = function(x) mean(x) + sd(x), 
                geom = "pointrange") +
       stat_summary(geom = "line",  fun = mean, size=2) +
-      labs(x=vars[1], y=paste("mean", vars[2]))
+      labs(x=vars[1], y=paste("mean", vars[2])) + 
+      theme_light(base_size = 14)
+    
   }
 
-  ggsave(filename=paste0(dfname, "-", graph_type, "-", paste(vars, collapse="__"), ".png"), plot=plot, path=savepath)
+  ggsave(filename=paste0(dfname, "-", graph_type, "-", paste(vars, collapse="__"), ".png"), 
+         plot=plot, 
+         path=savepath, 
+         units = "cm",
+         width = 12, 
+         height = 10,
+         dpi = 150, 
+         type = "cairo" # anti-alaising
+        )
 
   # return(plot)
 }
@@ -865,7 +904,7 @@ Questions_generator <- function(fp) {
     'sprintf("What is the proportion of <strong>%s</strong> between %.4g and %.4g?", df_sub_Q$X1, df_sub_Q$v1, df_sub_Q$v2)',
     
     # VLAT: Make Comparisons (e.g. More people have rated the taxi between 4.6 and 4.8 than between 4.2 and 4.4)
-    'sprintf("The proportion in <strong>%s</strong> between %.4g and %.4g is larger than between %f and %f.", df_sub_Q$X1, df_sub_Q$v1, df_sub_Q$v2, df_sub_Q$v3, df_sub_Q$v4)'
+    'sprintf("The proportion in <strong>%s</strong> between %.4g and %.4g is larger than between %.4g and %.4g.", df_sub_Q$X1, df_sub_Q$v1, df_sub_Q$v2, df_sub_Q$v3, df_sub_Q$v4)'
   )
   
   df_Q_N_NA <- data.frame()
