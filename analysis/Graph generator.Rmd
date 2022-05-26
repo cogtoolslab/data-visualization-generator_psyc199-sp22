@@ -624,7 +624,7 @@ graph_saver <- function(df, vars, varstype, graph_type, dfname, savepath){ #pref
       labs(x=vars[1], y=paste("mean", vars[2]))
   }
 
-  ggsave(filename=paste0(dfname, "-", graph_type, "-", paste(vars, collapse=","), ".pdf"), plot=plot, path=savepath)
+  ggsave(filename=paste0(dfname, "-", graph_type, "-", paste(vars, collapse="-"), ".png"), plot=plot, path=savepath)
 
   # return(plot)
 }
@@ -804,7 +804,7 @@ Questions_generator <- function(fp) {
   paths <- list.files(path = file.path(dir0), all.files = T, full.names = T, recursive = T)
   
   # read variables from the graph files ---------------------------
-  list_graph_V1_V2 <- lapply( strsplit(paths, c("-|\\,|\\.")), function(x) x[ 3 : (length(x)-1)])
+  list_graph_V1_V2 <- lapply( strsplit(paths, c("-|\\.")), function(x) x[ 3 : (length(x)-1)])
   
   ml <- max(lengths(list_graph_V1_V2))
   df_graph_X1_X2 <- data.frame( do.call(rbind, lapply(list_graph_V1_V2, function(x) `length<-`(unlist(x), ml))))
