@@ -949,7 +949,7 @@ Questions_generator <- function(fp) {
     'sprintf("What is the percentage of %s in <strong>%s</strong>?", df_sub_Q$l1, df_sub_Q$X1)',
 
     # Y (Percentage): Diff of 2 levels
-    'sprintf("What is the difference between the percentage of %s and the percetage of %s in <strong>%s</strong>?", df_sub_Q$l1, df_sub_Q$l2, df_sub_Q$X1)',
+    'sprintf("What is the difference between the percentage of %s and the percentage of %s in <strong>%s</strong>?", df_sub_Q$l1, df_sub_Q$l2, df_sub_Q$X1)',
     
     # Y (Percentage): Sum of 2 levels
     'sprintf("What percentage is %s and %s in <strong>%s</strong> taken together?", df_sub_Q$l1, df_sub_Q$l2, df_sub_Q$X1)',
@@ -1020,7 +1020,7 @@ Questions_generator <- function(fp) {
     # VLAT: Find correlations/trends (e.g. There is a negative linear relationship between the height and the weight of the 85 males.) -----
     'sprintf("What is the correlation between <strong>%s</strong> and <strong>%s</strong>?", df_sub_Q$X1, df_sub_Q$X2)',
     'sprintf("There is no linear correlation between <strong>%s</strong> and <strong>%s</strong>.", df_sub_Q$X1, df_sub_Q$X2)',
-    'sprintf("What is the approximate correlation coefficient between <strong>%s</strong> and <strong>%s</strong>.", df_sub_Q$X1, df_sub_Q$X2)',
+    'sprintf("What is the approximate correlation coefficient between <strong>%s</strong> and <strong>%s</strong>?", df_sub_Q$X1, df_sub_Q$X2)',
 
     'sprintf("Does <strong>%s</strong> increase while <strong>%s</strong> increases?", df_sub_Q$X2, df_sub_Q$X1)',
     'sprintf("Does <strong>%s</strong> decrease while <strong>%s</strong> decreases?", df_sub_Q$X2, df_sub_Q$X1)',
@@ -1247,6 +1247,7 @@ Questions_generator <- function(fp) {
     merge(df_graph_X1_X2, df_Q_N_NA, by=c("graph_type", "X1", "X2"), all.y = T), 
     merge(df_graph_X1_X2, df_Q_C_NA, by=c("graph_type", "X1", "X2"), all.y = T),
     merge(df_graph_X1_X2, df_Q_N_N, by=c("graph_type", "X1", "X2"), all.y = T),
+    merge(df_graph_X1_X2, df_Q_C_C, by=c("graph_type", "X1", "X2"), all.y = T),
     merge(df_graph_X1_X2, df_Q_C_N, by=c("graph_type", "X1", "X2"), all.y = T)
   )
   
