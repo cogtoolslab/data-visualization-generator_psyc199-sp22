@@ -554,8 +554,8 @@ graph_saver <- function(df, vars, varstype, graph_type, dfname, savepath){ #pref
   } else if (graph_type == "bar" & varstype == "C_N"){
     plot <- ggplot(df) + 
       geom_bar(aes(x=get(vars[1]), y=get(vars[2])), 
-               position = "dodge", stat = "summary", fun = "mean") +
-      labs(x=vars[1], y=paste("mean", vars[2])) + 
+               position = "dodge", stat = "summary", fun = "median") +
+      labs(x=vars[1], y=paste("median", vars[2])) + 
       theme_light(base_size = 14)
     
   }
@@ -646,12 +646,12 @@ graph_saver <- function(df, vars, varstype, graph_type, dfname, savepath){ #pref
   
   if (graph_type == "line" & varstype == "C_N"){
     plot <- ggplot(df, aes(get(vars[1]), get(vars[2]), group=1)) + 
-      stat_summary(fun.y = mean,
-               fun.ymin = function(x) mean(x) - sd(x), 
-               fun.ymax = function(x) mean(x) + sd(x), 
+      stat_summary(fun.y = median,
+               # fun.ymin = function(x) median(x) - sd(x), 
+               # fun.ymax = function(x) median(x) + sd(x), 
                geom = "pointrange") +
-      stat_summary(geom = "line",  fun = mean, size=2) +
-      labs(x=vars[1], y=paste("mean", vars[2])) + 
+      stat_summary(geom = "line",  fun = median, size=2) +
+      labs(x=vars[1], y=paste("median", vars[2])) + 
       theme_light(base_size = 14)
     
   }
@@ -1200,31 +1200,32 @@ Questions_generator <- function(fp) {
   Q_C_N_2 <- c(
     
     # VLAT: Retrieve Value
-    'sprintf("What is the average <strong>%s</strong> in the %s <strong>%s</strong>?", df_sub_Q$X2, df_sub_Q$l1, df_sub_Q$X1)',
+    'sprintf("What is the median of <strong>%s</strong> in the %s <strong>%s</strong>?", df_sub_Q$X2, df_sub_Q$l1, df_sub_Q$X1)',
     
     # VLAT: Find Extremum
-    'sprintf("In which group of <strong>%s</strong> has the highest average <strong>%s</strong>?", df_sub_Q$X1, df_sub_Q$X2)',
-    'sprintf("In which group of <strong>%s</strong> has the lowest average <strong>%s</strong>?", df_sub_Q$X1, df_sub_Q$X2)',
+    'sprintf("In which group of <strong>%s</strong> has the highest median <strong>%s</strong>?", df_sub_Q$X1, df_sub_Q$X2)',
+    'sprintf("In which group of <strong>%s</strong> has the lowest median <strong>%s</strong>?", df_sub_Q$X1, df_sub_Q$X2)',
     
     # VLAT: Make Comparisons
-    'sprintf("In the group of %s <strong>%s</strong>, the average <strong>%s</strong> is higher than of %s <strong>%s</strong>.", df_sub_Q$l1, df_sub_Q$X1, df_sub_Q$X2, df_sub_Q$l2, df_sub_Q$X1)',  
-    'sprintf("In the group of %s <strong>%s</strong>, the average <strong>%s</strong> is lower than of %s <strong>%s</strong>.", df_sub_Q$l1, df_sub_Q$X1, df_sub_Q$X2, df_sub_Q$l2, df_sub_Q$X1)',  
+    'sprintf("In the group of %s <strong>%s</strong>, the median of <strong>%s</strong> is higher than of %s <strong>%s</strong>.", df_sub_Q$l1, df_sub_Q$X1, df_sub_Q$X2, df_sub_Q$l2, df_sub_Q$X1)',  
+    'sprintf("In the group of %s <strong>%s</strong>, the median of <strong>%s</strong> is lower than of %s <strong>%s</strong>.", df_sub_Q$l1, df_sub_Q$X1, df_sub_Q$X2, df_sub_Q$l2, df_sub_Q$X1)',  
     
     # Add VLAT -----------------------------------------------------------------
     # VLAT: Determine Range
-    'sprintf("What is the range of average <strong>%s</strong> among each group in <strong>%s</strong>", df_sub_Q$X2, df_sub_Q$X1)'
+    'sprintf("What is the range of median of <strong>%s</strong> among each group in <strong>%s</strong>", df_sub_Q$X2, df_sub_Q$X1)'
   )
   
   df_Q_C_N <- data.frame()
   
-  df_sub_1 <- df_sub[df_sub$graph_type == "boxplot" | 
-                       df_sub$graph_type == "violin" | 
+  df_sub_1 <- df_sub[
                        df_sub$graph_type == "histogram" |
                        df_sub$graph_type == "density" | 
                        df_sub$graph_type == "freqpoly", ]
   
   df_sub_2 <- df_sub[df_sub$graph_type == "bar" | 
-                     df_sub$graph_type == "line", ]
+                     df_sub$graph_type == "line" |
+                     df_sub$graph_type == "boxplot" | 
+                     df_sub$graph_type == "violin" , ]
     
   for(q in Q_C_N_1){
     df_sub_Q <- df_sub_1
