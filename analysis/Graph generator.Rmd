@@ -1111,7 +1111,7 @@ Questions_generator <- function(fp) {
     
     # Add VLAT -------------------------------------------------------------
     # VLAT: Retrieve value (relative value)
-    'sprintf("What is the proportion of %s <strong>%s</strong> in %s <strong>%s</strong>", df_sub_Q$l2_1, df_sub_Q$X2, df_sub_Q$l1_1, df_sub_Q$X1)',       
+    'sprintf("What is the proportion of %s <strong>%s</strong> in %s <strong>%s</strong>?", df_sub_Q$l2_1, df_sub_Q$X2, df_sub_Q$l1_1, df_sub_Q$X1)',       
     # VLAT: Make comparisons (relative value)
     'sprintf("The ratio of the proportion of %s to %s in %s <strong>%s</strong> is higher than of %s <strong>%s</strong>.", df_sub_Q$l2_1, df_sub_Q$l2_2, df_sub_Q$l1_1, df_sub_Q$X1, df_sub_Q$l1_2, df_sub_Q$X1)'
   )
