@@ -1,0 +1,179 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <title>My experiment</title>
+    <script src="jspsych/jspsych.js"></script>
+    <script src="jspsych/plugin-html-keyboard-response.js"></script>
+    <script src="jspsych/plugin-image-keyboard-response.js"></script>
+    <script src="jspsych/plugin-html-button-response.js"></script>
+    <script src="jsPsych/plugin-instructions.js"></script>
+    <script src="jspsych/plugin-preload.js"></script>
+    <script type="text/javascript" src="d3.js"></script>
+    <link href="jspsych/jspsych.css" rel="stylesheet" type="text/css" />
+    <link rel="stylesheet" href="jspsych.css">
+
+  </head>
+  <body></body>
+  <script>
+
+    /* read .csv file */
+		var rowConverter = function(d){
+			return {
+				graph_type: d.graph_type,
+				X1: d.X1,
+				X2: d.X2,
+				path: d.path,
+        questions: d.Questions
+			};
+		}
+
+		const data = d3.csv('../analysis/Questions-synthetic_df.csv', rowConverter);
+    data.then(function(df){
+      /* shuffle the df and choose first 15 rows */
+      const df_shuffled = d3.shuffle(df);
+      const questions_selected = df_shuffled.slice(0, 15);
+
+      /* trials part*/
+      experiment(questions_selected);
+    });
+    
+
+    /* trials part */
+    function experiment(questions_input){
+
+      /* initialize jsPsych */
+      var jsPsych = initJsPsych({
+        on_finish: function() {
+          jsPsych.data.displayData();
+        },
+        show_progress_bar: true
+      });
+
+      /* create timeline */
+      var timeline = [];
+
+      /* preload images from the dataframe*/
+      const images_arr = questions_input.map(
+        function(d) { 
+          return '../analysis/' + d['path'] 
+        });
+
+      var preload = {
+        type: jsPsychPreload,
+        images: images_arr
+      };
+      timeline.push(preload);
+
+      /* define welcome message trial */
+      var welcome = {
+        type: jsPsychHtmlKeyboardResponse,
+        stimulus: "Welcome to the experiment. Press any key to begin."
+      };
+      timeline.push(welcome);
+
+      /* define instructions trial */
+      // cite: experiments/exp_1/js/setup.js
+      var instructions = {
+        type: jsPsychInstructions,
+        pages:[
+          `
+            <h1 style="text-align:left">Welcome!</h1>  
+            <div style="text-align:left">
+              <p> We are interested in what makes some data visualizations more effective than others.        
+                In this study, you will be presented with a series of data visualizations and asked some questions about them.</p>        
+              <p>The total time commitment for this study is expected to be approximately 50 - 60 minutes, including the time it takes to read these instructions.        For your participation in this study, you will earn 1 SONA credit.</p>
+              <p>When you are finished, the study will be automatically submitted for approval.</p>
+              <p><i>We recommend using Chrome. This study has not been tested in other browsers. Please also ensure that you complete this study on a desktop computer or laptop.</i></p>
+            </div>
+          `,
+          `
+            <div style="text-align:left">
+            <u>
+              <p id="legal">Consent to Participate</p>
+            </u> 
+            <p id="legal">By completing this study, you are participating in a study being performed by cognitive scientists in the UC San Diego Department of Psychology. The purpose of this research is to find out how people understand visual information. You must be at least 18 years old to participate. There are neither specific benefits nor anticipated risks associated with participation in this study. Your participation in this study is completely voluntary        and you can withdraw at any time by simply exiting the study. You may decline to answer any or all of the following questions. Choosing not to participate or withdrawing will result in no penalty. Your anonymity is assured; the researchers who have requested your participation will not receive any personal information about you, and any information you provide will not be shared in association with any personally identifying information.</p>
+            </div>
+          `
+        ],
+        button_label_next:'Continue',
+        show_clickable_nav: true,
+        allow_backward: false
+      };
+
+      timeline.push(instructions);
+
+      /* define test trial stimuli array for timeline variables */
+      var test_stimuli = questions_input.map(
+        function(d) { 
+          return { stimulus: 
+            `<div style=height: 600px;'>
+                <img class="graph-stimuli" src="${'../analysis/' + d['path']}"></img>
+                <p class='question-stimuli'>${d['questions']}</p>
+              </div>
+            `
+          }
+      });
+
+      /* define fixation and test trials */
+      var fixation = {
+        type: jsPsychHtmlKeyboardResponse,
+        stimulus: '<div style="font-size:60px;">+</div>',
+        choices: "NO_KEYS",
+        trial_duration: function(){
+          return jsPsych.randomization.sampleWithoutReplacement([250, 500, 750, 1000], 1)[0];
+        },
+        data: {
+          task: 'fixation'
+        }
+      };
+
+      /* stimulus & next botton */
+      var test = {
+        type: jsPsychHtmlButtonResponse,
+        stimulus: jsPsych.timelineVariable('stimulus'),
+        choices: ['next'],
+        button_html: '<button class="next-btn">%choice%</button>'
+        // data: {
+        //   task: 'response'
+        //   // correct_response: jsPsych.timelineVariable('correct_response')
+        // },
+        // on_finish: function(data){
+        //   data.correct = jsPsych.pluginAPI.compareKeys(data.response, data.correct_response);
+        //   // case sensitive: `data.correct = data.response === data.correct_response;`
+        // }
+      };
+
+      /* define test procedure */
+      var test_procedure = {
+        timeline: [fixation, test],
+        timeline_variables: test_stimuli,
+        randomize_order: true,
+        repetitions: 1
+      };
+      timeline.push(test_procedure);
+      
+      // /* define debrief */
+      // var debrief_block = {
+      //   type: jsPsychHtmlKeyboardResponse,
+      //   stimulus: function() {
+
+      //     var trials = jsPsych.data.get().filter({task: 'response'});
+      //     var correct_trials = trials.filter({correct: true});
+      //     var accuracy = Math.round(correct_trials.count() / trials.count() * 100);
+      //     var rt = Math.round(correct_trials.select('rt').mean());
+
+      //     return `<p>You responded correctly on ${accuracy}% of the trials.</p>
+      //       <p>Your average response time was ${rt}ms.</p>
+      //       <p>Press any key to complete the experiment. Thank you!</p>`;
+
+      //   }
+      // };
+      // timeline.push(debrief_block);
+
+
+      /* start the experiment */
+      jsPsych.run(timeline);
+    }
+
+  </script>
+</html>

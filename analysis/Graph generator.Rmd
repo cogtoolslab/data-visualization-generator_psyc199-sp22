@@ -536,7 +536,8 @@ graph_saver <- function(df, vars, varstype, graph_type, dfname, savepath){ #pref
     # Bar graph for categorical variables 
     plot <- ggplot(df) + 
       geom_bar(aes(x = get(vars), y = stat(count) / sum(count) *100), position = "identity") +
-      labs(x=vars, y="Frequency (%)")
+      labs(x=vars, y="Frequency (%)") +
+      theme_light(base_size = 14)
   } else if (graph_type == "bar" & varstype == "C_C") {
     # stacked bar chart
     plot <- df %>% 
